@@ -15,6 +15,8 @@ pub const KEYWORDS: Keywords = Keywords{
     ["wrapLength", "shellLanguageInfo", "historyLength"],
     manifest_keys:
     ["[package]", "name", "version", "authors", "edition", "flavour", "[dependencies]"],
+    debug_words:
+    ["Tokens", "ASTs", "Symbol tables", "LLVM IR generated", "Writing to file", "Unable to write to file", "Written LLVM IR to file"],
     flavours:
     ["pure", "counting"]
 };

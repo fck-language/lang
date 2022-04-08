@@ -21,7 +21,11 @@ pub struct Keywords<'a> {
     pub config_keys: [&'a str; 3],
     /// Manifest file keys
     pub manifest_keys: [&'a str; 7],
-    /// Flavour names. This will robably be changed later
+    /// Debug words
+    ///
+    /// These are used when printing things to the user such as "LLVM IR generated" and other things
+    pub debug_words: [&'a str; 7],
+    /// Flavour names. This will probably be changed later
     pub flavours: [&'a str; 2]
 }
 
