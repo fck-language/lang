@@ -81,8 +81,8 @@ pub struct ErrorHolder<'a> {
 impl ErrorHolder<'_> {
     /// Gets the name of the error section
     pub fn get_name(&self, code: u16) -> &'_ str {
-        let index = (code / 100)  as usize;
-        match code % 100u16 {
+        let index = (code % 100)  as usize;
+        match code / 100u16 {
             1u16 => self.language_errors.get(index).unwrap(),
             2u16 => self.unknown_errors.get(index).unwrap(),
             3u16 => self.expected_errors.get(index).unwrap(),
