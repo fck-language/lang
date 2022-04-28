@@ -26,7 +26,7 @@ pub struct Keywords<'a> {
     /// These are used when printing things to the user such as "LLVM IR generated" and other things
     pub debug_words: [&'a str; 7],
     /// Command keywords
-    pub cli_commands: [&'a str; 8],
+    pub cli_commands: [&'a str; 9],
     /// All the arguments
     pub cli_args: [&'a str; 2],
     /// Flavour names. This will probably be changed later

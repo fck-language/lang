@@ -19,7 +19,7 @@ pub const KEYWORDS: Keywords = Keywords{
     debug_words:
     ["Tokens", "ASTs", "Symbol tables", "LLVM IR generated", "Writing to file", "Unable to write to file", "Written LLVM IR to file"],
     cli_commands:
-    ["test", "info", "run", "build", "lint", "raw", "shell", "doc"],
+    ["test", "info", "run", "build", "lint", "raw", "shell", "doc", "new"],
     cli_args:
     ["debug", "duml-llvm"],
     flavours:
