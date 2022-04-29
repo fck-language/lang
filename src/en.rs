@@ -18,7 +18,7 @@ pub const KEYWORDS: Keywords = Keywords{
     cli_commands:
     ["test", "info", "run", "build", "lint", "raw", "shell", "doc", "new"],
     cli_args:
-    ["debug", "duml-llvm"],
+    ["debug", "dump-llvm"],
     flavours:
     ["pure", "counting"]
 };
