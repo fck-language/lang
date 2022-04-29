@@ -15,7 +15,8 @@ pub const KEYWORDS: Keywords = Keywords{
     // TODO: Work out the actual words
     ["wrapLength", "shellLanguageChange", "historyLength"],
     manifest_keys:
-    ["package", "name", "version", "authors", "edition", "flavour", "dependencies"],
+    ["project", "name", "default", "description", "authors", "github", "email", "repository",
+        "homepage", "publish", "license", "readme", "categories", "dependencies"],
     debug_words:
     ["Tokens", "ASTs", "Symbol tables", "LLVM IR generated", "Writing to file", "Unable to write to file", "Written LLVM IR to file"],
     cli_commands:

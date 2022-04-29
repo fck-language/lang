@@ -20,7 +20,7 @@ pub struct Keywords<'a> {
     /// Config file keys
     pub config_keys: [&'a str; 3],
     /// Manifest file keys
-    pub manifest_keys: [&'a str; 7],
+    pub manifest_keys: [&'a str; 14],
     /// Debug words
     ///
     /// These are used when printing things to the user such as "LLVM IR generated" and other things
