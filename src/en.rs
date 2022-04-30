@@ -10,7 +10,7 @@ pub const KEYWORDS: Keywords = Keywords{
     var_keywords:
     ["int", "float", "bool", "list", "str"],
     config_keys:
-    ["wrapLength", "shellLanguageInfo", "historyLength"],
+    ["wrapLength", "shellLanguageInfo", "historyLength", "name", "github", "email"],
     manifest_keys:
     ["project", "name", "default", "description", "authors", "github", "email", "repository",
         "homepage", "publish", "license", "readme", "categories", "dependencies"],

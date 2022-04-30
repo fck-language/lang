@@ -13,7 +13,7 @@ pub const KEYWORDS: Keywords = Keywords{
     ["ent", "flottante", "bool", "liste", "chaîne"],
     config_keys:
     // TODO: Work out the actual words
-    ["wrapLength", "shellLanguageChange", "historyLength"],
+    ["wrapLength", "shellLanguageChange", "historyLength", "name", "github", "email"],
     manifest_keys:
     ["project", "name", "default", "description", "authors", "github", "email", "repository",
         "homepage", "publish", "license", "readme", "categories", "dependencies"],

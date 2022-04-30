@@ -18,7 +18,7 @@ pub struct Keywords<'a> {
     /// List index 1
     pub var_keywords: [&'a str; 5],
     /// Config file keys
-    pub config_keys: [&'a str; 3],
+    pub config_keys: [&'a str; 6],
     /// Manifest file keys
     pub manifest_keys: [&'a str; 14],
     /// Debug words
