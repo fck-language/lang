@@ -18,12 +18,37 @@ pub const KEYWORDS: Keywords = Keywords{
         "homepage", "publish", "license", "readme", "categories", "dependencies"],
     debug_words:
     ["Tokens", "ASTs", "Symbol tables", "LLVM IR generated", "Writing to file", "Unable to write to file", "Written LLVM IR to file"],
-    cli_commands:
-    ["test", "info", "run", "build", "lint", "raw", "shell", "doc", "new"],
-    cli_args:
-    ["debug", "duml-llvm"],
     flavours:
     ["pure", "counting"]
+};
+
+// I sincerely apologise for the myriad of what i can only presume is shitty translations
+pub const CLI_KEYWORDS: CLIKeywords = CLIKeywords {
+    commands: [
+        ("새로운", ""),
+        ("shell", ""),
+        ("쌓다", ""),
+        ("run", ""),
+        ("시험", ""),
+        ("정보", ""),
+        ("lint", ""),
+        ("raw", ""),
+        ("doc", "")
+    ],
+    single_flag_args: [
+        ("git", ""),
+        ("디버그", ""),
+        ("dump-llvm", ""),
+        ("아니-쌓다", "")
+    ],
+    double_flag_args: [
+        ('t', "시험", "")
+    ],
+    help_strings: [
+        "Directory to create the new project in",
+        "Path to a file or project",
+        "Raw string to run"
+    ]
 };
 
 pub const MESSAGES: Messages = Messages{

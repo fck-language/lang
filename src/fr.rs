@@ -19,12 +19,36 @@ pub const KEYWORDS: Keywords = Keywords{
         "homepage", "publish", "license", "readme", "categories", "dependencies"],
     debug_words:
     ["Tokens", "ASTs", "Symbol tables", "LLVM IR generated", "Writing to file", "Unable to write to file", "Written LLVM IR to file"],
-    cli_commands:
-    ["test", "info", "run", "build", "lint", "raw", "shell", "doc", "new"],
-    cli_args:
-    ["debug", "duml-llvm"],
     flavours:
     ["pure", "counting"]
+};
+
+pub const CLI_KEYWORDS: CLIKeywords = CLIKeywords {
+    commands: [
+        ("nouvelle", ""),
+        ("shell", ""),
+        ("construire", ""),
+        ("fonctionner", ""),
+        ("tester", ""),
+        ("info", ""),
+        ("lint", ""),
+        ("crue", ""),
+        ("doc", "")
+    ],
+    single_flag_args: [
+        ("git", ""),
+        ("déboguer", ""),
+        ("dump-llvm", ""),
+        ("non-construire", "")
+    ],
+    double_flag_args: [
+        ('t', "tester", "")
+    ],
+    help_strings: [
+        "Directory to create the new project in",
+        "Path to a file or project",
+        "Raw string to run"
+    ]
 };
 
 pub const MESSAGES: Messages = Messages{

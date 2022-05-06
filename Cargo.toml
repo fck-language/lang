@@ -13,3 +13,4 @@ include = ["/fckl equivalents"]
 maintenance = {status = "as-is"}
 
 [dependencies]
+clap = "3.1.15"

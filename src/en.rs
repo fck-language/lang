@@ -16,12 +16,36 @@ pub const KEYWORDS: Keywords = Keywords{
         "homepage", "publish", "license", "readme", "categories", "dependencies"],
     debug_words:
     ["Tokens", "ASTs", "Symbol tables", "LLVM IR generated", "Writing to file", "Unable to write to file", "Written LLVM IR to file"],
-    cli_commands:
-    ["test", "info", "run", "build", "lint", "raw", "shell", "doc", "new"],
-    cli_args:
-    ["debug", "dump-llvm"],
     flavours:
     ["pure", "counting"]
+};
+
+pub const CLI_KEYWORDS: CLIKeywords = CLIKeywords {
+    commands: [
+        ("new", "Generate a new project"),
+        ("shell", "Run the shell"),
+        ("build", "Build the specified project or file"),
+        ("run", "Run the specified project after (optionally) building"),
+        ("test", "Test the given project using all or some tests"),
+        ("info", "Get info about the current fck version"),
+        ("lint", "Lint a project depending on the style file"),
+        ("raw", "Run a raw piece of fck code"),
+        ("doc", "Generate the documentation for a project")
+    ],
+    single_flag_args: [
+        ("git", "Initialise the new project as a git repository"),
+        ("debug", "Print a lot of debug information. Used primarily for development purposes"),
+        ("dump-llvm", "Dump the LLVM IR to a file"),
+        ("no-build", "Don't build before running the command")
+    ],
+    double_flag_args: [
+        ('t', "test", "Path like string to a specific file, module, or test function to run. Can be given more than once")
+    ],
+    help_strings: [
+        "Directory to create the new project in",
+        "Path to a file or project",
+        "Raw string to run"
+    ]
 };
 
 pub const MESSAGES: Messages = Messages{

@@ -25,10 +25,6 @@ pub struct Keywords<'a> {
     ///
     /// These are used when printing things to the user such as "LLVM IR generated" and other things
     pub debug_words: [&'a str; 7],
-    /// Command keywords
-    pub cli_commands: [&'a str; 9],
-    /// All the arguments
-    pub cli_args: [&'a str; 2],
     /// Flavour names. This will probably be changed later
     pub flavours: [&'a str; 2]
 }
@@ -48,6 +44,20 @@ impl Keywords<'_> {
         }
         None
     }
+}
+
+/// Holds all the cli commands, arguments, and help descriptions
+///
+/// Unfortunately, we have to split up single and double flag arguments. sorry
+pub struct CLIKeywords<'a> {
+    /// Commands and help descriptions
+    pub(crate) commands: [(&'a str, &'a str); 9],
+    /// Single flag arguments with help messages
+    pub(crate) single_flag_args: [(&'a str, &'a str); 4],
+    /// Double flag arguments with help messages
+    pub(crate) double_flag_args: [(char, &'a str, &'a str); 1],
+    /// Help things. For arguments without flags
+    pub(crate) help_strings: [&'a str; 3]
 }
 
 /// Messages for different events
@@ -90,7 +100,7 @@ impl ErrorHolder<'_> {
             1u16 => self.language_errors.get(index).unwrap(),
             2u16 => self.unknown_errors.get(index).unwrap(),
             3u16 => self.expected_errors.get(index).unwrap(),
-            _ => unreachable!()
+            _ => unreachable!("Unknown error code {}. If you're reading this you're either a dev, or something's VERY broken", code)
         }.name
     }
 }
