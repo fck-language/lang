@@ -3,7 +3,8 @@
 //! This contains all the keywords currently available for fck, as well as the functions that allow
 //! the extended use of them. This crate (in the fck repo) also includes the `fckl equivalents`
 //! folder that has the `.fckl` language files equivalent to all the currently included languages
-use clap::{Arg, Command};
+use std::path::PathBuf;
+use clap::{Arg, Command as Cmd};
 
 pub mod keywords;
 pub mod en;
@@ -39,6 +40,20 @@ pub fn get_associated_messages(lang_code: &str) -> Option<keywords::Messages<'st
     }
 }
 
+/// Returns (assuming the language code is valid) the messages relating to the given language code
+pub fn get_cli_keywords(lang_code: &str) -> Option<keywords::CLIKeywords<'static>> {
+    match lang_code {
+        "en" => Some(en::CLI_KEYWORDS),
+        "de" => Some(de::CLI_KEYWORDS),
+        "fr" => Some(fr::CLI_KEYWORDS),
+        "ko" => Some(ko::CLI_KEYWORDS),
+        t => {
+            println!("Unknown language code \"{}\"", t);
+            None
+        }
+    }
+}
+
 /// Custom format macro
 ///
 /// Used similarly to the normal `format!` macro, with some alterations. The first variable can be
@@ -60,6 +75,46 @@ macro_rules! fmt {
     }}
 }
 
+pub enum  Command {
+	New {
+		path: PathBuf,
+		git: bool
+	},
+	Shell {
+		debug: bool
+	},
+	Build {
+		path: PathBuf,
+		debug: bool,
+		llvm: bool
+	},
+	Run {
+		path: PathBuf,
+		debug: bool,
+		llvm: bool,
+		no_build: bool
+	},
+	Test {
+		path: PathBuf,
+		debug: bool,
+		llvm: bool,
+		tests: Vec<String>
+	},
+	Info,
+	Lint {
+		path: PathBuf
+	},
+	Raw {
+		raw: String,
+		debug: bool,
+		llvm: bool,
+	},
+	Doc {
+		path: PathBuf,
+		no_build: bool
+	}
+}
+
 pub fn get_cli(lang_code: &str) -> Option<Command> {
 	let kwds = match lang_code {
 		"en" => en::CLI_KEYWORDS,
@@ -72,52 +127,100 @@ pub fn get_cli(lang_code: &str) -> Option<Command> {
 		Arg::new("debug").long(kwds.single_flag_args[1].0.clone()).help(kwds.single_flag_args[1].1.clone()).takes_value(false),
 		Arg::new("llvm").long(kwds.single_flag_args[2].0.clone()).help(kwds.single_flag_args[2].1.clone()).takes_value(false)
 	];
-	Some(
-		Command::new("fck")
-			.subcommands([
-				// new
-				Command::new(kwds.commands[0].0.clone())
-					.about(kwds.commands[0].1.clone())
-					.arg(Arg::new("directory").help(kwds.help_strings[0].clone()).index(1).required(true))
-					.arg(Arg::new("git").long(kwds.single_flag_args[0].0.clone()).help(kwds.single_flag_args[0].1.clone())),
-				// shell
-				Command::new(kwds.commands[1].0.clone())
-					.about(kwds.commands[1].1.clone()),
-				// build
-				Command::new(kwds.commands[2].0.clone())
-					.about(kwds.commands[2].1.clone())
-					.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
-					.arg(Arg::new("debug").long(kwds.single_flag_args[0].0.clone()).takes_value(false))
-					.arg(Arg::new("llvm").long(kwds.single_flag_args[1].0.clone()).takes_value(false)),
-				// run
-				Command::new(kwds.commands[3].0.clone())
-					.about(kwds.commands[3].1.clone())
-					.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
-					.args(debug_dump.clone())
-					.arg(Arg::new("no build").long(kwds.single_flag_args[3].0.clone()).help(kwds.single_flag_args[3].1.clone()).takes_value(false)),
-				// test
-				Command::new(kwds.commands[4].0.clone())
-					.about(kwds.commands[4].1.clone())
-					.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
-					.args(debug_dump.clone())
-					.arg(Arg::new("test").short(kwds.double_flag_args[0].0.clone()).long(kwds.double_flag_args[0].1.clone()).help(kwds.double_flag_args[0].2.clone()).multiple_occurrences(true).takes_value(true)),
-				// info
-				Command::new(kwds.commands[5].0.clone())
-					.about(kwds.commands[5].1.clone()),
-				// lint
-				Command::new(kwds.commands[6].0.clone())
-					.about(kwds.commands[6].1.clone())
-					.arg(Arg::new("path").help(kwds.help_strings[1].clone())),
-				// raw
-				Command::new(kwds.commands[7].0.clone())
-					.about(kwds.commands[7].1.clone())
-					.arg(Arg::new("raw").help(kwds.help_strings[2].clone()).required(true))
-					.args(debug_dump.clone()),
-				// doc
-				Command::new(kwds.commands[8].0.clone())
-					.about(kwds.commands[8].1.clone())
-					.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
-					.arg(Arg::new("no build").long(kwds.single_flag_args[3].0.clone()).help(kwds.single_flag_args[3].1.clone()).takes_value(false))
-			])
-	)
+	let app = Cmd::new("fck")
+		.subcommands([
+			// new
+			Cmd::new(kwds.commands[0].0.clone())
+				.about(kwds.commands[0].1.clone())
+				.arg(Arg::new("directory").help(kwds.help_strings[0].clone()).index(1).required(true))
+				.arg(Arg::new("git").long(kwds.single_flag_args[0].0.clone()).help(kwds.single_flag_args[0].1.clone())),
+			// shell
+			Cmd::new(kwds.commands[1].0.clone())
+				.about(kwds.commands[1].1.clone())
+				.arg(Arg::new("debug").long(kwds.single_flag_args[1].0.clone()).help(kwds.single_flag_args[1].1.clone()).takes_value(false)),
+			// build
+			Cmd::new(kwds.commands[2].0.clone())
+				.about(kwds.commands[2].1.clone())
+				.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
+				.args(debug_dump.clone()),
+			// run
+			Cmd::new(kwds.commands[3].0.clone())
+				.about(kwds.commands[3].1.clone())
+				.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
+				.args(debug_dump.clone())
+				.arg(Arg::new("no build").long(kwds.single_flag_args[3].0.clone()).help(kwds.single_flag_args[3].1.clone()).takes_value(false)),
+			// test
+			Cmd::new(kwds.commands[4].0.clone())
+				.about(kwds.commands[4].1.clone())
+				.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
+				.args(debug_dump.clone())
+				.arg(Arg::new("test").short(kwds.double_flag_args[0].0.clone()).long(kwds.double_flag_args[0].1.clone()).help(kwds.double_flag_args[0].2.clone()).multiple_occurrences(true).takes_value(true)),
+			// info
+			Cmd::new(kwds.commands[5].0.clone())
+				.about(kwds.commands[5].1.clone()),
+			// lint
+			Cmd::new(kwds.commands[6].0.clone())
+				.about(kwds.commands[6].1.clone())
+				.arg(Arg::new("path").help(kwds.help_strings[1].clone())),
+			// raw
+			Cmd::new(kwds.commands[7].0.clone())
+				.about(kwds.commands[7].1.clone())
+				.arg(Arg::new("raw").help(kwds.help_strings[2].clone()).required(true))
+				.args(debug_dump.clone()),
+			// doc
+			Cmd::new(kwds.commands[8].0.clone())
+				.about(kwds.commands[8].1.clone())
+				.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
+				.arg(Arg::new("no build").long(kwds.single_flag_args[3].0.clone()).help(kwds.single_flag_args[3].1.clone()).takes_value(false))
+		]);
+	Some(if let Some((c, t)) = app.get_matches().subcommand() {
+		if c == kwds.commands[0].0 {
+			Command::New {
+				path: PathBuf::from(t.value_of("directory").unwrap_or("")),
+				git: t.is_present("git")
+			}
+		} else if c == kwds.commands[1].0 {
+			Command::Shell { debug: t.is_present("debug") }
+		} else if c == kwds.commands[2].0 {
+			Command::Build {
+				path: PathBuf::from(t.value_of("path").unwrap_or("")),
+				debug: t.is_present("debug"),
+				llvm: t.is_present("llvm")
+			}
+		} else if c == kwds.commands[3].0 {
+			Command::Run {
+				path: PathBuf::from(t.value_of("path").unwrap_or("")),
+				debug: t.is_present("debug"),
+				llvm: t.is_present("llvm"),
+				no_build: t.is_present("no build")
+			}
+		} else if c == kwds.commands[4].0 {
+			Command::Test {
+				path: PathBuf::from(t.value_of("path").unwrap_or("")),
+				debug: t.is_present("debug"),
+				llvm: t.is_present("llvm"),
+				tests: match t.values_of("test") {
+					None => vec![],
+					Some(vals) => vals.map(|val| val.to_string()).collect()
+				}
+			}
+		} else if c == kwds.commands[5].0 {
+			Command::Info
+		} else if c == kwds.commands[6].0 {
+			Command::Lint { path: PathBuf::from(t.value_of("path").unwrap_or("")) }
+		} else if c == kwds.commands[7].0 {
+			Command::Raw {
+				raw: t.value_of("raw").unwrap().to_string(),
+				debug: t.is_present("debug"),
+				llvm: t.is_present("llvm")
+			}
+		} else {
+			Command::Doc {
+				path: PathBuf::from(t.value_of("path").unwrap_or("")),
+				no_build: t.is_present("no build")
+			}
+		}
+	} else {
+		Command::Shell { debug: false }
+	})
 }
