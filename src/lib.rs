@@ -78,7 +78,7 @@ pub fn get_cli(lang_code: &str) -> Option<Command> {
 				// new
 				Command::new(kwds.commands[0].0.clone())
 					.about(kwds.commands[0].1.clone())
-					.arg(Arg::new("directory").help(kwds.help_strings[0].clone()).index(0).required(true))
+					.arg(Arg::new("directory").help(kwds.help_strings[0].clone()).index(1).required(true))
 					.arg(Arg::new("git").long(kwds.single_flag_args[0].0.clone()).help(kwds.single_flag_args[0].1.clone())),
 				// shell
 				Command::new(kwds.commands[1].0.clone())
