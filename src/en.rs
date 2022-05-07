@@ -34,7 +34,6 @@ pub const CLI_KEYWORDS: CLIKeywords = CLIKeywords {
     ],
     single_flag_args: [
         ("git", "Initialise the new project as a git repository"),
-        ("debug", "Print a lot of debug information. Used primarily for development purposes"),
         ("dump-llvm", "Dump the LLVM IR to a file"),
         ("no-build", "Don't build before running the command")
     ],

@@ -53,7 +53,7 @@ pub struct CLIKeywords<'a> {
     /// Commands and help descriptions
     pub(crate) commands: [(&'a str, &'a str); 9],
     /// Single flag arguments with help messages
-    pub(crate) single_flag_args: [(&'a str, &'a str); 4],
+    pub(crate) single_flag_args: [(&'a str, &'a str); 3],
     /// Double flag arguments with help messages
     pub(crate) double_flag_args: [(char, &'a str, &'a str); 1],
     /// Help things. For arguments without flags

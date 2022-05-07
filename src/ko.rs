@@ -37,7 +37,6 @@ pub const CLI_KEYWORDS: CLIKeywords = CLIKeywords {
     ],
     single_flag_args: [
         ("git", ""),
-        ("디버그", ""),
         ("dump-llvm", ""),
         ("아니-쌓다", "")
     ],

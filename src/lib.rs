@@ -80,23 +80,18 @@ pub enum  Command {
 		path: PathBuf,
 		git: bool
 	},
-	Shell {
-		debug: bool
-	},
+	Shell,
 	Build {
 		path: PathBuf,
-		debug: bool,
 		llvm: bool
 	},
 	Run {
 		path: PathBuf,
-		debug: bool,
 		llvm: bool,
 		no_build: bool
 	},
 	Test {
 		path: PathBuf,
-		debug: bool,
 		llvm: bool,
 		tests: Vec<String>
 	},
@@ -106,7 +101,6 @@ pub enum  Command {
 	},
 	Raw {
 		raw: String,
-		debug: bool,
 		llvm: bool,
 	},
 	Doc {
@@ -123,10 +117,6 @@ pub fn get_cli(lang_code: &str) -> Option<Command> {
 		"ko" => ko::CLI_KEYWORDS,
 		_ => return None
 	};
-	let debug_dump = [
-		Arg::new("debug").long(kwds.single_flag_args[1].0.clone()).help(kwds.single_flag_args[1].1.clone()).takes_value(false),
-		Arg::new("llvm").long(kwds.single_flag_args[2].0.clone()).help(kwds.single_flag_args[2].1.clone()).takes_value(false)
-	];
 	let app = Cmd::new("fck")
 		.subcommands([
 			// new
@@ -136,24 +126,23 @@ pub fn get_cli(lang_code: &str) -> Option<Command> {
 				.arg(Arg::new("git").long(kwds.single_flag_args[0].0.clone()).help(kwds.single_flag_args[0].1.clone())),
 			// shell
 			Cmd::new(kwds.commands[1].0.clone())
-				.about(kwds.commands[1].1.clone())
-				.arg(Arg::new("debug").long(kwds.single_flag_args[1].0.clone()).help(kwds.single_flag_args[1].1.clone()).takes_value(false)),
+				.about(kwds.commands[1].1.clone()),
 			// build
 			Cmd::new(kwds.commands[2].0.clone())
 				.about(kwds.commands[2].1.clone())
 				.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
-				.args(debug_dump.clone()),
+				.arg(Arg::new("llvm").long(kwds.single_flag_args[1].0.clone()).help(kwds.single_flag_args[1].1.clone()).takes_value(false)),
 			// run
 			Cmd::new(kwds.commands[3].0.clone())
 				.about(kwds.commands[3].1.clone())
 				.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
-				.args(debug_dump.clone())
+				.arg(Arg::new("llvm").long(kwds.single_flag_args[1].0.clone()).help(kwds.single_flag_args[1].1.clone()).takes_value(false))
 				.arg(Arg::new("no build").long(kwds.single_flag_args[3].0.clone()).help(kwds.single_flag_args[3].1.clone()).takes_value(false)),
 			// test
 			Cmd::new(kwds.commands[4].0.clone())
 				.about(kwds.commands[4].1.clone())
 				.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
-				.args(debug_dump.clone())
+				.arg(Arg::new("llvm").long(kwds.single_flag_args[1].0.clone()).help(kwds.single_flag_args[1].1.clone()).takes_value(false))
 				.arg(Arg::new("test").short(kwds.double_flag_args[0].0.clone()).long(kwds.double_flag_args[0].1.clone()).help(kwds.double_flag_args[0].2.clone()).multiple_occurrences(true).takes_value(true)),
 			// info
 			Cmd::new(kwds.commands[5].0.clone())
@@ -166,12 +155,12 @@ pub fn get_cli(lang_code: &str) -> Option<Command> {
 			Cmd::new(kwds.commands[7].0.clone())
 				.about(kwds.commands[7].1.clone())
 				.arg(Arg::new("raw").help(kwds.help_strings[2].clone()).required(true))
-				.args(debug_dump.clone()),
+				.arg(Arg::new("llvm").long(kwds.single_flag_args[1].0.clone()).help(kwds.single_flag_args[1].1.clone()).takes_value(false)),
 			// doc
 			Cmd::new(kwds.commands[8].0.clone())
 				.about(kwds.commands[8].1.clone())
 				.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
-				.arg(Arg::new("no build").long(kwds.single_flag_args[3].0.clone()).help(kwds.single_flag_args[3].1.clone()).takes_value(false))
+				.arg(Arg::new("no build").long(kwds.single_flag_args[2].0.clone()).help(kwds.single_flag_args[2].1.clone()).takes_value(false))
 		]);
 	Some(if let Some((c, t)) = app.get_matches().subcommand() {
 		if c == kwds.commands[0].0 {
@@ -180,24 +169,21 @@ pub fn get_cli(lang_code: &str) -> Option<Command> {
 				git: t.is_present("git")
 			}
 		} else if c == kwds.commands[1].0 {
-			Command::Shell { debug: t.is_present("debug") }
+			Command::Shell
 		} else if c == kwds.commands[2].0 {
 			Command::Build {
 				path: PathBuf::from(t.value_of("path").unwrap_or("")),
-				debug: t.is_present("debug"),
 				llvm: t.is_present("llvm")
 			}
 		} else if c == kwds.commands[3].0 {
 			Command::Run {
 				path: PathBuf::from(t.value_of("path").unwrap_or("")),
-				debug: t.is_present("debug"),
 				llvm: t.is_present("llvm"),
 				no_build: t.is_present("no build")
 			}
 		} else if c == kwds.commands[4].0 {
 			Command::Test {
 				path: PathBuf::from(t.value_of("path").unwrap_or("")),
-				debug: t.is_present("debug"),
 				llvm: t.is_present("llvm"),
 				tests: match t.values_of("test") {
 					None => vec![],
@@ -211,7 +197,6 @@ pub fn get_cli(lang_code: &str) -> Option<Command> {
 		} else if c == kwds.commands[7].0 {
 			Command::Raw {
 				raw: t.value_of("raw").unwrap().to_string(),
-				debug: t.is_present("debug"),
 				llvm: t.is_present("llvm")
 			}
 		} else {
@@ -221,6 +206,6 @@ pub fn get_cli(lang_code: &str) -> Option<Command> {
 			}
 		}
 	} else {
-		Command::Shell { debug: false }
+		Command::Shell
 	})
 }

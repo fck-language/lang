@@ -37,7 +37,6 @@ pub const CLI_KEYWORDS: CLIKeywords = CLIKeywords {
     ],
     single_flag_args: [
         ("git", ""),
-        ("déboguer", ""),
         ("dump-llvm", ""),
         ("non-construire", "")
     ],
