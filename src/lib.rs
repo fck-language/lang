@@ -137,7 +137,7 @@ pub fn get_cli(lang_code: &str) -> Option<Command> {
 				.about(kwds.commands[3].1.clone())
 				.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
 				.arg(Arg::new("llvm").long(kwds.single_flag_args[1].0.clone()).help(kwds.single_flag_args[1].1.clone()).takes_value(false))
-				.arg(Arg::new("no build").long(kwds.single_flag_args[3].0.clone()).help(kwds.single_flag_args[3].1.clone()).takes_value(false)),
+				.arg(Arg::new("no build").long(kwds.single_flag_args[2].0.clone()).help(kwds.single_flag_args[2].1.clone()).takes_value(false)),
 			// test
 			Cmd::new(kwds.commands[4].0.clone())
 				.about(kwds.commands[4].1.clone())
