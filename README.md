@@ -50,3 +50,7 @@ If the file is in development, you should add
 //! **Development version**
 ```
 to the bottom of the docstring (eg [`fr.rs`](src/fr.rs)). Before a release, all language files must be up-to-date and not be in active development. At release, only language files that are up-to-date and not being actively worked on will be included.
+
+# Dependencies
+
+This crate has one dependency, [`clap`](https://crates.io/crates/clap/3.1.18). We use this to parse command line arguments and do errors (hopefully in several languages I haven't checked)

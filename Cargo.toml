@@ -13,4 +13,5 @@ include = ["/fckl equivalents"]
 maintenance = {status = "as-is"}
 
 [dependencies]
+# CLI parsing
 clap = "3.1.15"
