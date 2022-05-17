@@ -33,20 +33,19 @@ pub const CLI_KEYWORDS: CLIKeywords = CLIKeywords {
         ("info", ""),
         ("lint", ""),
         ("crue", ""),
-        ("doc", "")
+        ("doc", ""),
+        ("translate", "")
     ],
-    single_flag_args: [
-        ("git", ""),
-        ("dump-llvm", ""),
-        ("non-construire", "")
-    ],
-    double_flag_args: [
-        ('t', "tester", "")
-    ],
-    help_strings: [
-        "Directory to create the new project in",
-        "Path to a file or project",
-        "Raw string to run"
+    args: [
+        Arg("path", 'p', ""),
+        Arg("git", 'g', ""),
+        Arg("dump-llvm", 'd', ""),
+        Arg("non-construire", 'n', ""),
+        Arg("tester", 't', ""),
+        Arg("raw", 'r', ""),
+        Arg("target", 'l', ""),
+        Arg("output", 'o', ""),
+        Arg("comment", 'c', "")
     ]
 };
 

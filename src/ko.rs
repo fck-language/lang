@@ -33,20 +33,19 @@ pub const CLI_KEYWORDS: CLIKeywords = CLIKeywords {
         ("정보", ""),
         ("lint", ""),
         ("raw", ""),
-        ("doc", "")
+        ("doc", ""),
+        ("translate", "")
     ],
-    single_flag_args: [
-        ("git", ""),
-        ("dump-llvm", ""),
-        ("아니-쌓다", "")
-    ],
-    double_flag_args: [
-        ('t', "시험", "")
-    ],
-    help_strings: [
-        "Directory to create the new project in",
-        "Path to a file or project",
-        "Raw string to run"
+    args: [
+        Arg("path", 'p', ""),
+        Arg("git", 'g', ""),
+        Arg("dump-llvm", 'd', ""),
+        Arg("아니-쌓다", 'n', ""),
+        Arg("시험", 't', ""),
+        Arg("raw", 'r', ""),
+        Arg("target", 'l', ""),
+        Arg("output", 'o', ""),
+        Arg("comment", 'c', "")
     ]
 };
 

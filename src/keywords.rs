@@ -44,6 +44,14 @@ impl Keywords<'_> {
         }
         None
     }
+    
+    pub fn get_word(&self, i: u8, n: u16) -> &'_ str {
+        match i {
+            0 => self.keywords.get(n as usize).unwrap(),
+            1 => self.var_keywords.get(n as usize).unwrap(),
+            _ => unreachable!()
+        }
+    }
 }
 
 /// Holds all the cli commands, arguments, and help descriptions
@@ -51,13 +59,20 @@ impl Keywords<'_> {
 /// Unfortunately, we have to split up single and double flag arguments. sorry
 pub struct CLIKeywords<'a> {
     /// Commands and help descriptions
-    pub(crate) commands: [(&'a str, &'a str); 9],
+    pub(crate) commands: [(&'a str, &'a str); 10],
     /// Single flag arguments with help messages
-    pub(crate) single_flag_args: [(&'a str, &'a str); 3],
-    /// Double flag arguments with help messages
-    pub(crate) double_flag_args: [(char, &'a str, &'a str); 1],
-    /// Help things. For arguments without flags
-    pub(crate) help_strings: [&'a str; 3]
+    pub(crate) args: [Arg<'a>; 9],
+}
+
+/// Argument struct. Used to simplify the argument creation and just make it look nice I guess
+#[derive(Clone)]
+pub struct Arg<'a> (pub(crate) &'a str, pub(crate) char, pub(crate) &'a str);
+
+impl Arg<'static> {
+    /// Generate a default standard simple `clap::Arg` struct from this struct
+    pub fn clap(self) -> clap::Arg<'static> {
+        clap::Arg::new(self.0).long(self.0).short(self.1).help(self.2)
+    }
 }
 
 /// Messages for different events

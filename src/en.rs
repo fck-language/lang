@@ -30,20 +30,19 @@ pub const CLI_KEYWORDS: CLIKeywords = CLIKeywords {
         ("info", "Get info about the current fck version"),
         ("lint", "Lint a project depending on the style file"),
         ("raw", "Run a raw piece of fck code"),
-        ("doc", "Generate the documentation for a project")
+        ("doc", "Generate the documentation for a project"),
+        ("translate", "Translate a file or project into a target language")
     ],
-    single_flag_args: [
-        ("git", "Initialise the new project as a git repository"),
-        ("dump-llvm", "Dump the LLVM IR to a file"),
-        ("no-build", "Don't build before running the command")
-    ],
-    double_flag_args: [
-        ('t', "test", "Path like string to a specific file, module, or test function to run. Can be given more than once")
-    ],
-    help_strings: [
-        "Directory to create the new project in",
-        "Path to a file or project",
-        "Raw string to run"
+    args: [
+        Arg("path", 'p', "Path to file or directory"),
+        Arg("git", 'g', "Initialise the new project as a git repository"),
+        Arg("dump-llvm", 'd', "Dump the LLVM IR to a file"),
+        Arg("no-build", 'n', "Don't build before running the command"),
+        Arg("test", 't', "Path like string to a specific file, module, or test function to run. Can be given more than once"),
+        Arg("raw", 'r', "Raw string to run"),
+        Arg("target", 'l', "Language to translate the code into"),
+        Arg("output", 'o', "Path to output the translated file to"),
+        Arg("comment", 'c', "Include the comments in translation using LibreTranslate")
     ]
 };
 

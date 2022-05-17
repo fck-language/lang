@@ -54,7 +54,7 @@ pub fn get_cli_keywords(lang_code: &str) -> Option<keywords::CLIKeywords<'static
     }
 }
 
-/// Custom format macro
+/// # Custom format macro
 ///
 /// Used similarly to the normal `format!` macro, with some alterations. The first variable can be
 /// a `&str` or `String` and can be a variable. Any `_` is replaced with the index appropriate
@@ -106,6 +106,12 @@ pub enum  Command {
 	Doc {
 		path: PathBuf,
 		no_build: bool
+	},
+	Translate {
+		path: PathBuf,
+		output: PathBuf,
+		target_language: String,
+		comment: bool
 	}
 }
 
@@ -117,93 +123,116 @@ pub fn get_cli(lang_code: &str) -> Option<Command> {
 		"ko" => ko::CLI_KEYWORDS,
 		_ => return None
 	};
+	let args = [
+		Arg::new(kwds.args[0].clone().0).help(kwds.args[0].clone().2).default_value(".").index(1),
+		kwds.args[1].clone().clap(),
+		kwds.args[2].clone().clap().takes_value(false),
+		kwds.args[3].clone().clap().takes_value(false),
+		kwds.args[4].clone().clap().multiple_occurrences(true).takes_value(true),
+		Arg::new(kwds.args[5].clone().0).help(kwds.args[5].clone().2).default_value(".").required(true),
+		kwds.args[6].clone().clap().required(true),
+		kwds.args[7].clone().clap().takes_value(true),
+		kwds.args[8].clone().clap().required(false)
+	];
 	let app = Cmd::new("fck")
 		.subcommands([
 			// new
 			Cmd::new(kwds.commands[0].0.clone())
 				.about(kwds.commands[0].1.clone())
-				.arg(Arg::new("directory").help(kwds.help_strings[0].clone()).index(1).required(true))
-				.arg(Arg::new("git").long(kwds.single_flag_args[0].0.clone()).help(kwds.single_flag_args[0].1.clone())),
+				.arg(args[0].clone())
+				.arg(args[1].clone()),
 			// shell
 			Cmd::new(kwds.commands[1].0.clone())
 				.about(kwds.commands[1].1.clone()),
 			// build
 			Cmd::new(kwds.commands[2].0.clone())
 				.about(kwds.commands[2].1.clone())
-				.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
-				.arg(Arg::new("llvm").long(kwds.single_flag_args[1].0.clone()).help(kwds.single_flag_args[1].1.clone()).takes_value(false)),
+				.arg(args[0].clone())
+				.arg(args[2].clone()),
 			// run
 			Cmd::new(kwds.commands[3].0.clone())
 				.about(kwds.commands[3].1.clone())
-				.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
-				.arg(Arg::new("llvm").long(kwds.single_flag_args[1].0.clone()).help(kwds.single_flag_args[1].1.clone()).takes_value(false))
-				.arg(Arg::new("no build").long(kwds.single_flag_args[2].0.clone()).help(kwds.single_flag_args[2].1.clone()).takes_value(false)),
+				.arg(args[0].clone())
+				.arg(args[2].clone())
+				.arg(args[3].clone()),
 			// test
 			Cmd::new(kwds.commands[4].0.clone())
 				.about(kwds.commands[4].1.clone())
-				.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
-				.arg(Arg::new("llvm").long(kwds.single_flag_args[1].0.clone()).help(kwds.single_flag_args[1].1.clone()).takes_value(false))
-				.arg(Arg::new("test").short(kwds.double_flag_args[0].0.clone()).long(kwds.double_flag_args[0].1.clone()).help(kwds.double_flag_args[0].2.clone()).multiple_occurrences(true).takes_value(true)),
+				.arg(args[0].clone())
+				.arg(args[2].clone())
+				.arg(args[4].clone()),
 			// info
 			Cmd::new(kwds.commands[5].0.clone())
 				.about(kwds.commands[5].1.clone()),
 			// lint
 			Cmd::new(kwds.commands[6].0.clone())
 				.about(kwds.commands[6].1.clone())
-				.arg(Arg::new("path").help(kwds.help_strings[1].clone())),
+				.arg(args[0].clone()),
 			// raw
 			Cmd::new(kwds.commands[7].0.clone())
 				.about(kwds.commands[7].1.clone())
-				.arg(Arg::new("raw").help(kwds.help_strings[2].clone()).required(true))
-				.arg(Arg::new("llvm").long(kwds.single_flag_args[1].0.clone()).help(kwds.single_flag_args[1].1.clone()).takes_value(false)),
+				.arg(args[5].clone())
+				.arg(args[2].clone()),
 			// doc
 			Cmd::new(kwds.commands[8].0.clone())
 				.about(kwds.commands[8].1.clone())
-				.arg(Arg::new("path").help(kwds.help_strings[1].clone()))
-				.arg(Arg::new("no build").long(kwds.single_flag_args[2].0.clone()).help(kwds.single_flag_args[2].1.clone()).takes_value(false))
+				.arg(args[0].clone())
+				.arg(args[3].clone()),
+			// translate
+			Cmd::new(kwds.commands[9].0.clone())
+				.about(kwds.commands[9].1.clone())
+				.arg(args[0].clone())
+				.arg(args[6].clone())
+				.arg(args[7].clone())
+				.arg(args[8].clone())
 		]);
 	Some(if let Some((c, t)) = app.get_matches().subcommand() {
-		if c == kwds.commands[0].0 {
-			Command::New {
-				path: PathBuf::from(t.value_of("directory").unwrap_or("")),
-				git: t.is_present("git")
-			}
-		} else if c == kwds.commands[1].0 {
-			Command::Shell
-		} else if c == kwds.commands[2].0 {
-			Command::Build {
-				path: PathBuf::from(t.value_of("path").unwrap_or("")),
-				llvm: t.is_present("llvm")
-			}
-		} else if c == kwds.commands[3].0 {
-			Command::Run {
-				path: PathBuf::from(t.value_of("path").unwrap_or("")),
-				llvm: t.is_present("llvm"),
-				no_build: t.is_present("no build")
-			}
-		} else if c == kwds.commands[4].0 {
-			Command::Test {
-				path: PathBuf::from(t.value_of("path").unwrap_or("")),
-				llvm: t.is_present("llvm"),
-				tests: match t.values_of("test") {
-					None => vec![],
-					Some(vals) => vals.map(|val| val.to_string()).collect()
-				}
-			}
-		} else if c == kwds.commands[5].0 {
-			Command::Info
-		} else if c == kwds.commands[6].0 {
-			Command::Lint { path: PathBuf::from(t.value_of("path").unwrap_or("")) }
-		} else if c == kwds.commands[7].0 {
-			Command::Raw {
-				raw: t.value_of("raw").unwrap().to_string(),
-				llvm: t.is_present("llvm")
-			}
-		} else {
-			Command::Doc {
-				path: PathBuf::from(t.value_of("path").unwrap_or("")),
-				no_build: t.is_present("no build")
-			}
+		match kwds.commands.iter().map(|(d, _)| *d).collect::<Vec<&str>>().iter().position(|&d| d == c).unwrap() {
+			0 => Command::New {
+					path: PathBuf::from(t.value_of(kwds.args[0].0).unwrap()),
+					git: t.is_present(kwds.args[1].0)
+				},
+			1 => Command::Shell,
+			2 => Command::Build {
+					path: PathBuf::from(t.value_of(kwds.args[0].0).unwrap()),
+					llvm: t.is_present(kwds.args[2].0)
+				},
+			3 => Command::Run {
+					path: PathBuf::from(t.value_of(kwds.args[0].0).unwrap()),
+					llvm: t.is_present(kwds.args[2].0),
+					no_build: t.is_present(kwds.args[3].0)
+				},
+			4 => Command::Test {
+					path: PathBuf::from(t.value_of(kwds.args[0].0).unwrap()),
+					llvm: t.is_present(kwds.args[2].0),
+					tests: match t.values_of(kwds.args[4].0) {
+						None => vec![],
+						Some(vals) => vals.map(|val| val.to_string()).collect()
+					}
+				},
+			5 => Command::Info,
+			6 => Command::Lint { path: PathBuf::from(t.value_of(kwds.args[0].0).unwrap()) },
+			7 => Command::Raw {
+					raw: t.value_of(kwds.args[5].0).unwrap().to_string(),
+					llvm: t.is_present(kwds.args[2].0)
+				},
+			8 => Command::Doc {
+					path: PathBuf::from(t.value_of(kwds.args[0].0).unwrap()),
+					no_build: t.is_present(kwds.args[3].0)
+				},
+			9 => Command::Translate {
+				path: PathBuf::from(t.value_of(kwds.args[0].0).unwrap()),
+				output: if let Some(p) = t.value_of(kwds.args[7].0) {
+					PathBuf::from(p)
+				} else {
+					let mut out = PathBuf::from(t.value_of(kwds.args[0].0).unwrap());
+					out.set_file_name(format!("{}_{}.fck", out.file_stem().unwrap().to_str().unwrap(), t.value_of(kwds.args[6].0).unwrap()));
+					out
+				},
+				target_language: t.value_of(kwds.args[6].0).unwrap().to_string(),
+				comment: t.is_present(kwds.args[7].0)
+			},
+			_ => unreachable!()
 		}
 	} else {
 		Command::Shell
