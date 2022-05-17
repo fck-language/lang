@@ -24,6 +24,7 @@ pub const KEYWORDS: Keywords = Keywords{
 
 // I sincerely apologise for the myriad of what i can only presume is shitty translations
 pub const CLI_KEYWORDS: CLIKeywords = CLIKeywords {
+    desc: "fck command line interface",
     commands: [
         ("새로운", ""),
         ("shell", ""),

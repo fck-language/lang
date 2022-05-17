@@ -135,6 +135,7 @@ pub fn get_cli(lang_code: &str) -> Option<Command> {
 		kwds.args[8].clone().clap().required(false)
 	];
 	let app = Cmd::new("fck")
+		.about(kwds.desc)
 		.subcommands([
 			// new
 			Cmd::new(kwds.commands[0].0.clone())

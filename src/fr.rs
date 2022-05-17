@@ -24,6 +24,7 @@ pub const KEYWORDS: Keywords = Keywords{
 };
 
 pub const CLI_KEYWORDS: CLIKeywords = CLIKeywords {
+    desc: "fck command line interface",
     commands: [
         ("nouvelle", ""),
         ("shell", ""),

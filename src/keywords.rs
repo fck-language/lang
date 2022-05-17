@@ -58,6 +58,8 @@ impl Keywords<'_> {
 ///
 /// Unfortunately, we have to split up single and double flag arguments. sorry
 pub struct CLIKeywords<'a> {
+    /// fck CLI description
+    pub(crate) desc: &'a str,
     /// Commands and help descriptions
     pub(crate) commands: [(&'a str, &'a str); 10],
     /// Single flag arguments with help messages
