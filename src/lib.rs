@@ -130,7 +130,7 @@ pub fn get_cli(lang_code: &str) -> Option<Command> {
 		kwds.args[3].clone().clap().takes_value(false),
 		kwds.args[4].clone().clap().multiple_occurrences(true).takes_value(true),
 		Arg::new(kwds.args[5].clone().0).help(kwds.args[5].clone().2).default_value(".").required(true),
-		kwds.args[6].clone().clap().required(true),
+		kwds.args[6].clone().clap().required(true).takes_value(true),
 		kwds.args[7].clone().clap().takes_value(true),
 		kwds.args[8].clone().clap().required(false)
 	];
