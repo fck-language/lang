@@ -1,7 +1,6 @@
 # fck languages
 
-<center><img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/fck-language/lang/test.yml?style=for-the-badge&label=Tests">
-</center>
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/fck-language/lang/test.yaml?style=for-the-badge&label=Tests)
 
 This repo contains anything language based and is split into three crates:
 - `lang` Root crate
