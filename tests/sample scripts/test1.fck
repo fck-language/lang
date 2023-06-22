@@ -1,0 +1,11 @@
+!!en
+set my_var = 5
+class SomeClass {
+    properties { int inner }
+    {!!de
+        def set_de() { }
+    }
+    def set_(int inner) -> Self {
+        return Self { inner: inner }
+    }
+}

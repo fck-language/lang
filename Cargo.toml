@@ -1,17 +1,28 @@
 [package]
 name = "lang"
-description = "Language files for fck"
+description = "Language parsing for fck"
 version = "0.1.0"
-authors = ["RosiePuddles <rosiegbartlett@gmail.om>"]
-edition = "2018"
+authors = ["RosiePuddles <rosiegbartlett@gmail.com>"]
+edition = "2021"
 homepage = "https://github.com/RosiePuddles/fck/tree/main/lang"
 readme = "README.md"
 license = "GPL-3.0"
-include = ["/fckl equivalents"]
 
 [badges]
 maintenance = {status = "as-is"}
 
 [dependencies]
-# CLI parsing
-clap = "3.1.15"
+lang-macros = { path = "lang-macros" }
+lang-inner = { path = "lang-inner" }
+dirs = "5.0.0"
+num-bigint = "0.4.3"
+
+[features]
+table-page = ["lang-macros/table-page"]
+
+[dev-dependencies]
+criterion = { version = "0.4", features = ["html_reports"] }
+
+[[bench]]
+name = "main"
+harness = false

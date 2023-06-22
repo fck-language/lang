@@ -11,7 +11,7 @@ use crate::{error, warn};
 pub struct Language<'a> {
 	pub map: &'a [[Option<MapNode<'a>>; 256]],
 	pub raw_language: &'a LanguageRaw<'a>,
-	pub mapping: TransitionMap<char>
+	pub mapping: TransitionMap<char>,
 }
 
 /// # Language mapping node
@@ -19,8 +19,8 @@ pub struct Language<'a> {
 /// For our language maps, each value is a node that can lead to another row and optionally be an
 /// accepting state.
 pub struct MapNode<'a> {
-	next: Option<u8>,
-	accept: Option<TokType<&'a str>>
+	pub(in crate::prelude) next: Option<u8>,
+	pub(in crate::prelude) accept: Option<TokType<&'a str>>,
 }
 
 impl Default for MapNode<'_> {
@@ -34,7 +34,8 @@ impl MapNode<'_> {
 		Self { next, accept }
 	}
 	
-	pub fn update(&mut self, other: Self) {
+	pub fn update<T>(&mut self, other: T) where T: Into<Self> {
+		let other = other.into();
 		self.next = other.next;
 		if let Some(n) = other.accept {
 			self.accept = Some(n)
@@ -44,6 +45,12 @@ impl MapNode<'_> {
 	#[inline]
 	pub fn index(&self) -> Option<usize> {
 		if let Some(v) = self.next { Some(v as usize) } else { None }
+	}
+}
+
+impl Into<(Option<u8>, Option<TokType<&str>>)> for MapNode<'_> {
+	fn into(self) -> (Option<u8>, Option<TokType<&str>>) {
+		(self.next, self.accept)
 	}
 }
 
@@ -115,12 +122,12 @@ pub struct Warns<'a> {
 /// Unfortunately, we have to split up single and double flag arguments. sorry
 #[derive(Copy, Clone)]
 pub struct CLIKeywords<'a> {
-    /// fck CLI description
-    pub desc: &'a str,
-    /// Commands and help descriptions
-    pub commands: [(&'a str, &'a str); 10],
-    /// Single flag arguments with help messages
-    pub args: [Arg<'a>; 9],
+	/// fck CLI description
+	pub desc: &'a str,
+	/// Commands and help descriptions
+	pub commands: [(&'a str, &'a str); 10],
+	/// Single flag arguments with help messages
+	pub args: [Arg<'a>; 9],
 }
 
 /// Argument struct. Used to simplify the argument creation and just make it look nice I guess
@@ -138,18 +145,18 @@ impl LanguageRaw<'_> {
 		all_check.extend(self.keywords.builtins);
 		let l = all_check.len();
 		for (p, k_s) in all_check.iter().enumerate() {
-			if let Some(f) = all_check[p+1..l].iter().position(|x| x == k_s) {
+			if let Some(f) = all_check[p + 1..l].iter().position(|x| x == k_s) {
 				println!("Duplicate found: {}, {}", k_s, all_check[f]);
-				return error!(0004, k_s, all_check[f])
+				return error!(0004, k_s, all_check[f]);
 			}
 			if k_s.trim() == "" {
 				println!("Empty string found: {:?}", k_s);
-				return error!(0005)
+				return error!(0005);
 			}
 			for c in "+-%*^/(){}[]!=<>@:?.,;\\\n\t\r ".chars() {
 				if k_s.trim().contains(&c.to_string()) {
 					println!("Token contains reserved character: {} contains {}", k_s, c);
-					return error!(0006)
+					return error!(0006);
 				}
 			}
 		}
@@ -161,7 +168,7 @@ impl LanguageRaw<'_> {
 			for c in k_s.chars() { char_set.insert(c); }
 		}
 		if char_set.len() > 218 {
-			return error!(0007, char_set.len())
+			return error!(0007, char_set.len());
 		}
 		Ok(())
 	}
@@ -195,135 +202,102 @@ impl LanguageRaw<'_> {
 	}
 	
 	pub fn kwd_to_maps<'a>(&self) -> Result<(Vec<[MapNode<'a>; 256]>, TransitionMap<char>), u16> {
+		macro_rules! single_none {
+			($m:ident, $(($i:literal, $n:literal, $t:ident)),+) => {
+				$($m[$i][$n] = MapNode::new(None, Some(TokType::$t));)*
+			};
+		}
+		macro_rules! single_update {
+			($m:ident, $(($i:literal, $n:literal, $t:ident)),+) => {
+				$($m[$i][$n].accept = Some(TokType::$t);)*
+			};
+		}
+		macro_rules! move_none {
+			($m:ident, $(($i:literal, $n:literal, $d:literal)),+) => {
+				$($m[$i][$n] = MapNode::new(Some($d), None);)*
+			};
+		}
+		macro_rules! move_update {
+			($m:ident, $(($i:literal, $n:literal, $d:literal)),+) => {
+				$($m[$i][$n].next = Some($d);)*
+			};
+		}
 		let k = self.keywords;
 		let char_mapping = self.generate_mapping();
 		
 		// Check for errors
 		if let Err(e) = self.validate() {
-			return Err(e)
+			return Err(e);
 		}
 		
 		let key = self.name.1.to_string();
 		let mut mapping = vec![[MapNode::default(); 256]; 20];
 		
 		// Identifier part 1
-		mapping[0] = [MapNode::new(Some(15), Some(TokType::Identifier(&*key.clone(), ""))); 256];
-		accepting[0] = vec![Some(TokType::Identifier(key.clone(), String::new())); 256].try_into().unwrap();
+		mapping[0] = [MapNode::new(Some(15), Some(TokType::Identifier(self.name.1, ""))); 256];
 		
 		// Single character tokens
-		// LParen
-		mapping[0][6] = MapNode::new(None, Some(TokType::LParen));
-		// RParen
-		accepting[0][7] = Some(TokType::RParen);
-		mapping[0][7] = MapNode::new(None, Some(TokType::RParen));
-		// LParenCurly
-		accepting[0][8] = Some(TokType::LParenCurly);
-		mapping[0][8] = MapNode::new(None, Some(TokType::LParenCurly));
-		// RParenCurly
-		accepting[0][9] = Some(TokType::RParenCurly);
-		mapping[0][9] = MapNode::new(None, Some(TokType::RParenCurly));
-		// LParenSquare
-		accepting[0][10] = Some(TokType::LParenSquare);
-		mapping[0][10] = MapNode::new(None, Some(TokType::LParenSquare));
-		// RParenSquare
-		accepting[0][11] = Some(TokType::RParenSquare);
-		mapping[0][11] = MapNode::new(None, Some(TokType::RParenSquare));
-		// Colon
-		accepting[0][17] = Some(TokType::Colon);
-		mapping[0][17] = MapNode::new(None, Some(TokType::Colon));
-		// QuestionMark
-		accepting[0][18] = Some(TokType::QuestionMark);
-		mapping[0][18] = None;
-		// Dot
-		accepting[0][19] = Some(TokType::Dot);
-		mapping[0][19] = None;
-		// Comma
-		accepting[0][20] = Some(TokType::Comma);
-		mapping[0][20] = None;
-		// Newline
-		accepting[0][23] = Some(TokType::Newline);
-		mapping[0][23] = None;
-		accepting[0][21] = Some(TokType::Newline);
-		mapping[0][21] = None;
+		single_none!(mapping,
+			(0, 6, LParen), (0, 7, RParen), (0, 8, LParenCurly), (0, 9, RParenCurly),
+			(0, 10, LParenSquare), (0, 11, RParenSquare), (0, 17, Colon), (0, 18, QuestionMark),
+			(0, 19, Dot), (0, 20, Comma), (0, 23, Newline), (0, 21, Newline)
+		);
 		
 		// Multi characters
-		// Add,Increment,AddSet
-		mapping[0][0] = Some(1);
-		accepting[0][0] = Some(TokType::Plus);
-		accepting[1][0] = Some(TokType::Increment);
-		accepting[1][13] = Some(TokType::SetPlus);
-		// Sub,Increment,SubSet
-		mapping[0][1] = Some(2);
-		accepting[0][1] = Some(TokType::Minus);
-		accepting[2][1] = Some(TokType::Decrement);
-		accepting[2][13] = Some(TokType::SetMinus);
-		// Mod,SubMod
-		mapping[0][2] = Some(3);
-		accepting[0][2] = Some(TokType::Mod);
-		accepting[3][13] = Some(TokType::SetMod);
-		// Mult,Pow,SetMult,SetPow
-		mapping[0][3] = Some(4);
-		accepting[0][3] = Some(TokType::Mult);
-		accepting[4][3] = Some(TokType::Pow);
-		mapping[4][3] = Some(5);
-		accepting[4][13] = Some(TokType::SetMult);
-		accepting[5][13] = Some(TokType::SetPow);
-		// Div,FDiv,SetDiv,SetFDiv
-		mapping[0][5] = Some(6);
-		accepting[0][5] = Some(TokType::Div);
-		accepting[6][5] = Some(TokType::FDiv);
-		mapping[6][5] = Some(7);
-		accepting[6][13] = Some(TokType::SetDiv);
-		accepting[7][13] = Some(TokType::SetFDiv);
-		// Space
-		mapping[0][26] = Some(8);
-		accepting[0][26] = Some(TokType::Space);
-		mapping[8][26] = Some(8);
-		accepting[8][26] = Some(TokType::Space);
-		// Set,Eq
-		mapping[0][13] = Some(9);
-		accepting[0][13] = Some(TokType::Set);
-		accepting[9][13] = Some(TokType::Eq);
-		// Not,NE
-		mapping[0][12] = Some(10);
-		accepting[0][12] = Some(TokType::Not);
-		accepting[10][13] = Some(TokType::NE);
-		// LT,LTE
-		mapping[0][14] = Some(11);
-		accepting[0][14] = Some(TokType::LT);
-		accepting[11][13] = Some(TokType::LTE);
-		// GT,GTE
-		mapping[0][15] = Some(12);
-		accepting[0][15] = Some(TokType::GT);
-		accepting[12][13] = Some(TokType::GTE);
+		move_none!(mapping,
+			(0, 0, 1), // Add
+			(0, 1, 2), // Sub
+			(0, 2, 3), // Mod
+			(0, 3, 4), (4, 3, 5), // Mult
+			(0, 5, 6), (6, 5, 7), // Div
+			(0, 26, 8), (8, 26, 8), // Space
+			(0, 13, 9), // Eq
+			(0, 12, 10), // Not
+			(0, 14, 11), // LT
+			(0, 15, 12) // GT
+		);
+		single_update!(mapping,
+			// Add,Increment,AddSet
+			(0, 0, Plus), (1, 0, Increment), (1, 13, SetPlus),
+			// Sub,Increment,SubSet
+			(0, 1, Minus), (2, 1, Decrement), (2, 13, SetMinus),
+			// Mod,SubMod
+			(0, 2, Mod), (3, 13, SetMod),
+			// Mult,Pow,SetMult,SetPow
+			(0, 3, Mult), (4, 3, Pow), (4, 13, SetMult), (5, 13, SetPow),
+			// Div,FDiv,SetDiv,SetFDiv
+			(0, 5, Div), (6, 5, FDiv), (6, 13, SetDiv), (7, 13, SetFDiv),
+			// Space
+			(0, 26, Space), (8, 26, Space),
+			// Set,Eq
+			(0, 13, Set), (9, 13, Eq),
+			// Not,NE
+			(0, 12, Not), (10, 13, NE),
+			// LT,LTE
+			(0, 14, LT), (11, 13, LTE),
+			// GT,GTE
+			(0, 15, GT), (12, 13, GTE)
+		);
 		
 		// Literals
 		// Int
 		for i in 27..37 {
-			mapping[0][i] = Some(13);
-			accepting[0][i] = Some(TokType::Int(0));
-			mapping[13][i] = Some(13);
-			accepting[13][i] = Some(TokType::Int(0));
+			mapping[0][i] = MapNode::new(Some(13), Some(TokType::Int(0)));
+			mapping[13][i] = MapNode::new(Some(13), Some(TokType::Int(0)));
 		}
 		// Float
-		mapping[0][19] = Some(14);
-		mapping[13][19] = Some(14);
-		accepting[13][19] = Some(TokType::Float(0.));
+		move_update!(mapping, (0, 19, 14), (13, 19, 14));
 		for i in 27..37 {
-			mapping[14][i] = Some(14);
-			accepting[14][i] = Some(TokType::Float(0.));
+			mapping[14][i] = MapNode::new(Some(14), Some(TokType::Float(0.)));
 		}
 		
 		// Label
-		mapping[0][16] = Some(17);
-		accepting[0][16] = None;
-		mapping[17] = mapping[0].map(|t| if t == Some(15) { Some(17) } else { None });
+		move_none!(mapping, (0, 16, 17));
+		mapping[17] = mapping[0].clone().map(|mut t| if t.next == Some(15) { MapNode::new(Some(17), Some(TokType::Label(""))) } else { t });
 		for i in 27..37 {
-			mapping[17][i] = Some(17);
+			move_update!(mapping, (17, i, 17));
+			single_update!(mapping, (17, i, Laben("")))
 		}
-		accepting[17] = mapping[17].map(|t| if t == Some(17) {
-			Some(TokType::Label(String::new()))
-		} else { None });
 		
 		// Identifier part 2
 		mapping[15] = mapping[0].map(|t| if t == Some(15) { t } else { None });
@@ -432,7 +406,7 @@ impl LanguageRaw<'_> {
 						mapping[index][char_mapping.run(*c_inner) as usize] = Some(mapping.len());
 						mapping.push(return_to_id);
 						accepting.push(accepting_clone.clone());
-						index  = mapping.len() - 1
+						index = mapping.len() - 1
 					} else {
 						index = mapping[index][char_mapping.run(*c_inner) as usize].unwrap()
 					}
@@ -461,7 +435,7 @@ impl LanguageRaw<'_> {
 						mapping[index][char_mapping.run(*c_inner) as usize] = Some(mapping.len());
 						mapping.push(return_to_id);
 						accepting.push(accepting_clone.clone());
-						index  = mapping.len() - 1
+						index = mapping.len() - 1
 					} else {
 						index = mapping[index][char_mapping.run(*c_inner) as usize].unwrap()
 					}
@@ -490,7 +464,7 @@ impl LanguageRaw<'_> {
 						mapping[index][char_mapping.run(*c_inner) as usize] = Some(mapping.len());
 						mapping.push(return_to_id);
 						accepting.push(accepting_clone.clone());
-						index  = mapping.len() - 1
+						index = mapping.len() - 1
 					} else {
 						index = mapping[index][char_mapping.run(*c_inner) as usize].unwrap()
 					}
@@ -505,8 +479,8 @@ impl LanguageRaw<'_> {
 }
 
 impl Arg<'static> {
-    /// Generate a default standard simple `clap::Arg` struct from this struct
-    pub fn clap(self) -> clap::Arg<'static> {
-        clap::Arg::new(self.0).long(self.0).short(self.1).help(self.2)
-    }
+	/// Generate a default standard simple `clap::Arg` struct from this struct
+	pub fn clap(self) -> clap::Arg<'static> {
+		clap::Arg::new(self.0).long(self.0).short(self.1).help(self.2)
+	}
 }
