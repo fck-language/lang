@@ -11,6 +11,7 @@
 //!			- [`CLIKeywords`]
 
 use std::fmt::Formatter;
+use std::ops::Index;
 use crate::de::Deserialize;
 
 /// # Language struct
@@ -68,11 +69,9 @@ pub struct Keywords<'a> {
     /// Shell keys for use in the config file
     pub shell_keys: [&'a str; 3],
     /// Manifest key values
-    pub manifest_keys: [&'a str; 15],
-    /// Optional manifest key aliases. For example 'deps' for 'dependencies'
-    pub manifest_keys_short: [Option<&'a str>; 15],
+    pub manifest_keys: [&'a str; 27],
     /// Words and phrases used when compiling a project
-    pub compile_words: [&'a str; 7],
+    pub compile_words: [&'a str; 9],
 }
 
 /// # Digits type
@@ -116,6 +115,21 @@ pub struct Errors<'a> {
     pub e04: [&'a str; 2],
 }
 
+impl<'a> Index<(u8, u8)> for Errors<'a> {
+    type Output = str;
+    
+    fn index(&self, (i1, i2): (u8, u8)) -> &Self::Output {
+        match i1 {
+            0 => self.e00[i2 as usize],
+            1 => self.e01[i2 as usize],
+            2 => self.e02[i2 as usize],
+            3 => self.e03[i2 as usize],
+            4 => self.e04[i2 as usize],
+            _ => panic!("Out of bounds")
+        }
+    }
+}
+
 /// # Warning message and descriptors
 ///
 /// Holds all the warning messages and descriptors. Also includes implementations to make life easy
@@ -127,6 +141,21 @@ pub struct Warns<'a> {
     pub w02: [&'a str; 0],
     pub w03: [&'a str; 0],
     pub w04: [&'a str; 0],
+}
+
+impl<'a> Index<(u8, u8)> for Warns<'a> {
+    type Output = str;
+    
+    fn index(&self, (i1, i2): (u8, u8)) -> &Self::Output {
+        match i1 {
+            0 => self.w00[i2 as usize],
+            1 => self.w01[i2 as usize],
+            2 => self.w02[i2 as usize],
+            3 => self.w03[i2 as usize],
+            4 => self.w04[i2 as usize],
+            _ => panic!("Out of bounds")
+        }
+    }
 }
 
 /// Holds all the CLI commands, arguments, and help descriptions

@@ -204,50 +204,6 @@ impl Serialize for Keywords<'_> {
             colon_token: Some(Default::default()),
             expr: self.digits.serialize(),
         });
-        elems.push(FieldValue {
-            attrs: vec![],
-            member: Member::Named(Ident::new("manifest_keys_short", Span::mixed_site())),
-            colon_token: Some(Default::default()),
-            expr: Expr::Array(ExprArray {
-                attrs: vec![],
-                bracket_token: Default::default(),
-                elems: Punctuated::from_iter(self.manifest_keys_short.iter().map(|t| {
-                    if let Some(t) = t {
-                        Expr::Call(ExprCall {
-                            attrs: vec![],
-                            func: Box::new(Expr::Path(ExprPath {
-                                attrs: vec![],
-                                qself: None,
-                                path: Path {
-                                    leading_colon: None,
-                                    segments: Punctuated::from_iter(vec![PathSegment {
-                                        ident: Ident::new("Some", Span::mixed_site()),
-                                        arguments: Default::default(),
-                                    }]),
-                                },
-                            })),
-                            paren_token: Default::default(),
-                            args: Punctuated::from_iter(vec![Expr::Lit(ExprLit {
-                                attrs: vec![],
-                                lit: Lit::Str(LitStr::new(t, Span::mixed_site())),
-                            })]),
-                        })
-                    } else {
-                        Expr::Path(ExprPath {
-                            attrs: vec![],
-                            qself: None,
-                            path: Path {
-                                leading_colon: None,
-                                segments: Punctuated::from_iter(vec![PathSegment {
-                                    ident: Ident::new("None", Span::mixed_site()),
-                                    arguments: Default::default(),
-                                }]),
-                            },
-                        })
-                    }
-                })),
-            }),
-        });
         elems.push(array_member!(@inner, self, compile_words));
         Expr::Struct(ExprStruct {
             attrs: vec![],

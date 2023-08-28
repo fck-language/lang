@@ -24,8 +24,8 @@ pub struct RunningPosition {
 /// Holds positional data on tokens and AST nodes
 #[derive(Copy, Clone)]
 pub struct Position {
-	ln: usize,
-	col: usize,
+	pub ln: usize,
+	pub col: usize,
 }
 
 #[cfg(any(test, debug_assertions))]
@@ -116,6 +116,18 @@ impl PartialEq for Token {
 impl PartialEq<TokType> for Token {
 	fn eq(&self, other: &TokType) -> bool {
 		self.tt == *other
+	}
+}
+
+impl PartialEq<TokType> for &Token {
+	fn eq(&self, other: &TokType) -> bool {
+		self.tt == *other
+	}
+}
+
+impl Into<TokType> for &Token {
+	fn into(self) -> TokType {
+		self.tt.clone()
 	}
 }
 
@@ -336,6 +348,14 @@ pub enum Cmp {
 	LTE,
 	/// Greater than or equals operator
 	GTE,
+	/// Token for any comparison operator
+	Any
+}
+
+impl Default for Cmp {
+	fn default() -> Self {
+		Self::Any
+	}
 }
 
 /// Make a new [`BigUint`] from a matched digit, base, and digits

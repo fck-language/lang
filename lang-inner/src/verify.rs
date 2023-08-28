@@ -50,12 +50,6 @@ impl Verification for Keywords<'_> {
         if self.manifest_keys.iter().unique().count() != self.manifest_keys.len() {
             return true;
         }
-        let filtered_manifest_keys_short = self.manifest_keys_short.iter().filter(|t| t.is_some());
-        if filtered_manifest_keys_short.clone().unique().count()
-            != filtered_manifest_keys_short.count()
-        {
-            return true;
-        }
         false
     }
 }

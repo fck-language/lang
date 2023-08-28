@@ -196,6 +196,16 @@ pub fn languages(mods: pmTS) -> pmTS {
 			}
 			None
         }
+		
+		/// Get language with no language buffer. See [`get`]
+		pub fn get_no_buffer<'a>(l: &str) -> Option<LanguageTupleRef<'a>> {
+			let l = &*l.to_lowercase();
+            match l {
+                #(#arms)*
+                _ => {}
+            }
+			None
+		}
     })
 }
 

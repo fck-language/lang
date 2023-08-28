@@ -64,19 +64,9 @@ impl<'a> Deserialize<'a> for Keywords<'a> {
             bool,
             symbol_keys,
             shell_keys,
-            manifest_keys
+            manifest_keys,
+            compile_words
         );
-        let manifest_keys_short = if let Some(l) = s.next() {
-            let temp: [&str; 15] = l
-                .split_whitespace()
-                .collect::<Vec<_>>()
-                .try_into()
-                .expect("Unable to parse manifest_keys_short: Incorrect number of arguments");
-            temp.map(|t| if t == "_" { None } else { Some(t) })
-        } else {
-            return Err("Expected manifest_keys_short line: [Option<&str>; 15]".to_string());
-        };
-        fields!(s, compile_words);
         Ok(Self {
             digits,
             keywords,
@@ -86,7 +76,6 @@ impl<'a> Deserialize<'a> for Keywords<'a> {
             symbol_keys,
             shell_keys,
             manifest_keys,
-            manifest_keys_short,
             compile_words,
         })
     }

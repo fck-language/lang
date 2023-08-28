@@ -10,6 +10,10 @@
 )]
 #![cfg_attr(not(docs), warn(rustdoc::broken_intra_doc_links, missing_docs))]
 #![allow(rustdoc::private_intra_doc_links)]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/fck-language/fck/master/img/logo/icon.png",
+    issue_tracker_base_url = "https://github.com/fck-language/lang/issues"
+)]
 
 mod lexer;
 
@@ -24,4 +28,4 @@ pub mod prelude {
     pub use lang_inner::prelude::*;
 }
 
-languages!(en, ens, de);
+languages!(en, de);

@@ -6,9 +6,8 @@ int float bool str list map
 true false
 line_comment block_comment_start block_comment_end string_start string_end char_start char_end escape attribute_prefix arrow doc_comment
 wrapLength historyLength name
-package name version edition description authors github email twitter repository homepage readme license features dependencies
-_ _ v _ desc authors _ _ _ repo _ _ _ _ deps
-Compiling Building Built Linking Emitted errors warnings
+package name src tests benches type lib app version authors github gitlab email license description readme homepage repo features dependencies usage git branch path dev build main
+Compiling Building Built Linking Emitted Error errors Warning warnings
 e0001 placeholder
 e0002 placeholder
 e0003 placeholder
