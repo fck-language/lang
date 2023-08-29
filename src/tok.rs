@@ -3,6 +3,7 @@
 //! This module contains all the token type. It also contains two position structs used in parsing
 
 use std::fmt::{Debug, Formatter};
+use cflp::NodeData;
 use num_bigint::BigUint;
 use lang_inner::{Digits, LanguageRaw};
 use lang_macros::doc_see;
@@ -26,6 +27,14 @@ pub struct RunningPosition {
 pub struct Position {
 	pub ln: usize,
 	pub col: usize,
+}
+
+impl Default for Position {
+	fn default() -> Self {
+		Self {
+			ln: 0, col: 0
+		}
+	}
 }
 
 #[cfg(any(test, debug_assertions))]
@@ -131,6 +140,16 @@ impl Into<TokType> for &Token {
 	}
 }
 
+impl NodeData<Position> for Token {
+	fn start(&self) -> Position {
+		self.ps
+	}
+	
+	fn end(&self) -> Position {
+		self.pe
+	}
+}
+
 /// # Token type
 ///
 /// Final token type enum. These are from the [`PreTokType`] and are converted once lexing is done.
@@ -231,6 +250,12 @@ pub enum TokType {
 	/// Comment token. Used exclusively by the translator to return comments
 	/// - `tt=254`
 	Comment(String, Vec<u8>),
+}
+
+impl Default for TokType {
+	fn default() -> Self {
+		Self::LParen
+	}
 }
 
 /// # Intermediary Token types
