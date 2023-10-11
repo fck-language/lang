@@ -38,8 +38,8 @@ impl Verification for Keywords<'_> {
         ]);
         macro_rules! simple_lists {
 		    ($kwds:ident, $($l:ident),*$(,)?) => {$(
-				for i in self.$l.iter() {
-					if !$kwds.insert(*i) {
+				for i in self.$l.into_iter() {
+					if !$kwds.insert(i) {
 						return true
 					}
 				}
@@ -47,7 +47,7 @@ impl Verification for Keywords<'_> {
 			};
 		}
         simple_lists!(kwds, keywords, type_kwds, builtins, bool);
-        if self.manifest_keys.iter().unique().count() != self.manifest_keys.len() {
+        if self.manifest_keys.into_iter().unique().count() != self.manifest_keys.len() {
             return true;
         }
         false
@@ -60,29 +60,28 @@ impl Verification for Digits {
             '+', '-', '%', '*', '/', '=', '<', '>', '!', '?',
             '.', ':', ';', '(', ')', '{', '}', '[', ']',
         ]);
-        let digits = match self {
-            Digits::Short{ digits, .. } => digits.to_vec(),
-            Digits::Long{ digits, .. } => digits.to_vec()
+        let (pre, digits, byte_lengths) = match self {
+            Digits::Short(t) => ([t.bin_pre, t.hex_pre, t.oct_pre], t.digits.to_vec(), t.u8arrays.map(|(_, l)| 4 - l).to_vec()),
+            Digits::Long(t) => ([t.bin_pre, t.hex_pre, t.oct_pre], t.digits.to_vec(), t.u8arrays.map(|(_, l)| 4 - l).to_vec()),
         };
-        let byte_lengths = digits[3..].iter().map(|t| t.len_utf8()).collect_vec();
         // can be unsafe since we know the vector is non-empty
         let (bl_first, bl_rem) = unsafe { byte_lengths.split_first().unwrap_unchecked() };
         for i in bl_rem {
             if bl_first != i { return true }
         }
         // check the prefixes are unique and are not in 0..=9
-        for i in 0..13 {
+        for i in 0..10 {
             if !check.insert(digits[i]) { return true }
         }
-        for i in 0..3 {
-            if !check.remove(&digits[i]) { return true }
+        for i in pre {
+            if check.contains(&i) { return true }
         }
         // check the digit characters are all unique
-        for i in 13..19 {
+        for i in 10..16 {
             if !check.insert(digits[i]) { return true }
         }
-        if let Digits::Long{digits, ..} = self {
-            for i in 19..25 {
+        if let Digits::Long(_) = self {
+            for i in 16..22 {
                 if !check.insert(digits[i]) { return true }
             }
         }
@@ -98,13 +97,13 @@ impl Verification for Messages<'_> {
 
 impl Verification for CLIKeywords<'_> {
     fn is_invalid(&self) -> bool {
-        if self.commands.iter().map(|t| t.0).unique().count() != self.commands.len() {
+        if self.commands.into_iter().map(|t| t.0).unique().count() != self.commands.len() {
             return true;
         }
-        if self.args.iter().map(|t| t.0).unique().count() != self.args.len() {
+        if self.args.into_iter().map(|t| t.0).unique().count() != self.args.len() {
             return true;
         }
-        if self.args.iter().map(|t| t.1).unique().count() != self.args.len() {
+        if self.args.into_iter().map(|t| t.1).unique().count() != self.args.len() {
             return true;
         }
         false

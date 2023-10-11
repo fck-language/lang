@@ -29,7 +29,7 @@ pub fn tabularize(l: &LanguageRaw<'_>) -> (Vec<[u16; 256]>, Vec<[u8; 256]>, Vec<
 	for i in 0..256 {
 		if map2[0][i] == 0 {
 			if map1[0][i] == 0 { repeat_ident_row[i] = IDENT_ROW as u16; }
-			repeat_ident_row_m2[i] = 7;
+			repeat_ident_row_m2[i] = 9;
 		}
 	}
 	for i in [9, 10, 32, 123, 125] {
@@ -48,16 +48,20 @@ pub fn tabularize(l: &LanguageRaw<'_>) -> (Vec<[u16; 256]>, Vec<[u8; 256]>, Vec<
     let mut ident_rows: Vec<usize> = Vec::new();
     
     macro_rules! simple_map {
-		($f:expr, $($t: expr),*$(,)?) => {let mut counter = 0;simple_map!(@inner, $f, counter);$(counter += 1; simple_map!(@inner, $t, counter);)*};
+		($f:expr, $($t: expr),*$(,)?) => {
+			let mut counter = 6;
+			simple_map!(@inner, $f, counter);
+			$(counter += 1; simple_map!(@inner, $t, counter);)*
+		};
 	    (@inner, $t: expr, $e: ident) => {
-			for (td, kwd) in $t.iter().enumerate() {
+			for (td, kwd) in $t.into_iter().enumerate() {
 				let mut row_index = 0;
 				let (last, split) = kwd.as_bytes().split_last().unwrap();
 				for b in split {
 					if map1[row_index][*b as usize] == 0 {
 						// insert a new row
 						map1[row_index][*b as usize] = map1.len() as u16;
-						row_index = map1.len() as usize;
+						row_index = map1.len();
 						ident_rows.push(row_index);
 						map1.push([0; 256]);
 						map2.push(repeat_ident_row_m2);
@@ -67,8 +71,8 @@ pub fn tabularize(l: &LanguageRaw<'_>) -> (Vec<[u16; 256]>, Vec<[u8; 256]>, Vec<
 						row_index = map1[row_index][*b as usize] as usize;
 					}
 				}
-				map2[row_index][*last as usize] = 6;
-				map3[row_index][*last as usize] = ($e << 6) + td as u8;
+				map2[row_index][*last as usize] = $e;
+				map3[row_index][*last as usize] = td as u8;
 			}
 		};
 	}
@@ -76,9 +80,29 @@ pub fn tabularize(l: &LanguageRaw<'_>) -> (Vec<[u16; 256]>, Vec<[u8; 256]>, Vec<
     simple_map!(
         l.keywords.keywords,
         l.keywords.type_kwds,
-        l.keywords.builtins,
-        l.keywords.bool
+        l.keywords.builtins
     );
+	
+	for (td, kwd) in l.keywords.bool.into_iter().enumerate() {
+		let mut row_index = 0;
+		let (last, split) = kwd.as_bytes().split_last().unwrap();
+		for b in split {
+			if map1[row_index][*b as usize] == 0 {
+				// insert a new row
+				map1[row_index][*b as usize] = map1.len() as u16;
+				row_index = map1.len();
+				ident_rows.push(row_index);
+				map1.push([0; 256]);
+				map2.push(repeat_ident_row_m2);
+				map3.push([0; 256]);
+			} else {
+				// otherwise move through the table
+				row_index = map1[row_index][*b as usize] as usize;
+			}
+		}
+		map2[row_index][*last as usize] = 1;
+		map3[row_index][*last as usize] = td as u8;
+	}
 	
 	for i in ident_rows {
 		// merge current row with ident_row with the current row taking priority
@@ -93,7 +117,7 @@ pub fn tabularize(l: &LanguageRaw<'_>) -> (Vec<[u16; 256]>, Vec<[u8; 256]>, Vec<
 	for i in 0..256 {
 		if map2[0][i] == 0 {
 			if map1[0][i] == 0 { map1[0][i] = IDENT_ROW as u16; }
-			map2[0][i] = 7;
+			map2[0][i] = 9;
 		}
 	}
 	

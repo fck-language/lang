@@ -20,29 +20,29 @@ pub fn encode(
 	map3: &mut Vec<[u8; 256]>
 ) {
 	match digits {
-		Digits::Short{ digits, u8arrays } => if u8arrays.iter().all(|(_, t)| *t == 3) {
+		Digits::Short(t) => if t.u8arrays.iter().all(|(_, t)| *t == 3) && t.bin_pre_u8.1 == 3 && t.hex_pre_u8.1 == 3 && t.oct_pre_u8.1 == 3 {
 			single_bytes(
-				digits[3..].iter().map(|t| *t as u8).collect_vec(),
-				digits[..3].iter().map(|t| *t as u8).collect(),
+				t.digits.map(|t| t as u8).to_vec(),
+				vec![t.bin_pre as u8, t.hex_pre as u8, t.oct_pre as u8],
 				map1, map2, map3
 			);
 		} else {
 			multi_bytes(
-				u8arrays[3..].iter().map(|(t, _)| *t).collect(),
-				u8arrays[..3].iter().map(|(t, _)| *t).collect(),
+				t.u8arrays.map(|(t, _)| t).to_vec(),
+				vec![t.bin_pre_u8.0, t.hex_pre_u8.0, t.oct_pre_u8.0],
 				map1, map2, map3
 			);
 		}
-		Digits::Long{ digits, u8arrays } => if u8arrays.iter().all(|(_, t)| *t == 3) {
+		Digits::Long(t) => if t.u8arrays.iter().all(|(_, t)| *t == 3) && t.bin_pre_u8.1 == 3 && t.hex_pre_u8.1 == 3 && t.oct_pre_u8.1 == 3 {
 			single_bytes_long(
-				digits[3..].iter().map(|t| *t as u8).collect_vec(),
-				digits[..3].iter().map(|t| *t as u8).collect(),
+				t.digits.map(|t| t as u8).to_vec(),
+				vec![t.bin_pre as u8, t.hex_pre as u8, t.oct_pre as u8],
 				map1, map2, map3
 			);
 		} else {
 			multi_bytes_long(
-				u8arrays[3..].iter().map(|(t, _)| *t).collect(),
-				u8arrays[..3].iter().map(|(t, _)| *t).collect(),
+				t.u8arrays.map(|(t, _)| t).to_vec(),
+				vec![t.bin_pre_u8.0, t.hex_pre_u8.0, t.oct_pre_u8.0],
 				map1, map2, map3
 			);
 		}

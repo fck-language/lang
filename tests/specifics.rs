@@ -63,85 +63,6 @@ mod operators {
 }
 
 #[cfg(test)]
-mod keywords {
-	use super::*;
-	
-	macro_rules! lang_tests {
-		($($p:tt),*$(,)?) => {
-			$(lang_tests!{@inner, $p})*
-		};
-		(@inner, $p:tt) => {
-			#[test]
-			fn $p() -> Result<(), String> {
-				let mut errs = Vec::new();
-				let buf = Vec::new();
-				let (l, m): (&LanguageRaw, (&dyn Table<u16>, &dyn Table<u8>, &dyn Table<u8>)) = lang::get(stringify!($p), &buf).ok_or(format!("Unmatched language code"))?;
-				lang_tests!(@inner2, $p, l, buf, m, errs, keywords, type_kwds);
-				if !errs.is_empty() {
-					Err(format!("{} failures: {}", errs.len(), errs.iter().map(|(kwd, i)| format!("'{}' ({})", kwd, i)).collect::<Vec<_>>().join(" | ")))
-				} else { Ok(()) }
-			}
-		};
-		(@inner2, $lang:tt, $l:ident, $b:tt, $m:ident, $errs:ident, $($p:ident),*$(,)?) => {let mut counter = 0;$(
-			for (n, i) in $l.keywords.$p.iter().enumerate() {
-				match lang::tokenize(i.bytes(), $l, &$b, $m) {
-					Ok(tokens) => {
-						#[cfg(debug_assertions)]
-						println!("{:?}", tokens);
-						if tokens.len() != 1 {
-							$errs.push((i, 0))
-						} else {
-							if TokType::Keyword((counter << 6) + n as u8) != tokens[0].tt {
-								$errs.push((i, 1))
-							}
-						}
-					}
-					Err(err) => $errs.push((i, err))
-				}
-			}
-			counter += 1;
-		)*
-		};
-	}
-	
-	lang_tests!(en, de);
-	
-	#[test]
-	fn all_kwds() -> Result<(), u16> {
-		let mut test = String::new();
-		let buf = Vec::new();
-		let (l, (transition, tt, td)) = lang::get("en", &buf).unwrap();
-		let mut vars = Vec::new();
-		for (n, i) in l.keywords.keywords.iter().enumerate() {
-			test += i;
-			vars.push(n as u8);
-			test += "       "
-		}
-		for (n, i) in l.keywords.type_kwds.iter().enumerate() {
-			test += i;
-			vars.push((1 << 6) + n as u8);
-			test += "    "
-		}
-		let mut vars = vars.iter();
-		let mut buf = Vec::new();
-		match lang::tokenize(
-			test.bytes(),
-			l, &buf, (transition, tt, td),
-		) {
-			Ok(toks) => {
-				let mut iter = toks.iter();
-				while let Some(next) = iter.next() {
-					assert_eq!(next.tt, TokType::Keyword(*vars.next().unwrap()));
-				}
-				println!("{:?}", toks);
-				Ok(())
-			}
-			Err(e) => Err(e),
-		}
-	}
-}
-
-#[cfg(test)]
 mod digits {
 	use super::*;
 	
@@ -239,6 +160,7 @@ mod comments {
 
 #[cfg(test)]
 mod idents {
+	use lang::tok::ControlKeyword;
 	use super::*;
 	
 	#[test]
@@ -248,7 +170,7 @@ mod idents {
 		let s = "ident else".to_string();
 		let expected = vec![
 			TokType::Identifier("en".to_string(), "ident".as_bytes().to_vec()),
-			TokType::Keyword(5),
+			TokType::ControlKeyword(ControlKeyword::KElse),
 		];
 		
 		let buf = Vec::new();

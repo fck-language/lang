@@ -1,11 +1,11 @@
 !!en
 set my_var = 5
-class SomeClass {
+struct SomeStruct {
     properties { int inner }
     {!!de
-        def set_de() { }
+        fn set_de() { }
     }
-    def set_(int inner) -> Self {
+    fn set_(int inner) -> Self {
         return Self { inner: inner }
     }
 }

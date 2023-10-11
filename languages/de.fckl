@@ -1,11 +1,9 @@
 { Deutsch de
 b x o 0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F
-setz und oder nicht wenn sonst bei-change default wieder importieren während def rück continue break as
-class properties enum variants self Self extension extend
-int float bool str list map
+setz und or nicht if else match repeat for in to as while fn return continue break where
+struct properties enum variants self Self extension extend
+int uint dint udint float bfloat str char list bool
 true false
-line_comment block_comment_start block_comment_end string_start string_end char_start char_end escape attribute_prefix arrow doc_comment
-wrapLength historyLength name
 package name src tests benches type lib app version authors github gitlab email license description readme homepage repo features dependencies usage git branch path dev build main
 Compiling Building Built Linking Emitted Error errors Warning warnings
 e0001 placeholder

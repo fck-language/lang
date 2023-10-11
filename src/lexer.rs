@@ -6,20 +6,19 @@ use std::fmt::{Debug, Formatter};
 /// # Tokenize an input
 ///
 /// Turn an input into a token stream or return an error in parsing the input
-pub fn tokenize<'a, B>(
+pub fn tokenize<'a, B: Iterator<Item = u8>>(
 	mut bytes: B,
 	l: &LanguageRaw<'a>,
-	buf: &Vec<LanguageTuple<'a>>,
+	buf: &[LanguageTuple<'a>],
 	(transition, tt, td): (&dyn Table<u16>, &dyn Table<u8>, &dyn Table<u8>),
-) -> Result<Vec<Token>, u16>
-	where
-		B: Iterator<Item = u8>,
-{
+) -> Result<Vec<Token>, u16> {
+	use crate::tok::consts::*;
+	
 	let mut out = Vec::new();
 	let mut bytes = bytes.peekable();
 	
 	let mut pos = RunningPosition::new();
-	let mut tree = NFABranch::new(Vec::new(), pos.clone());
+	let mut tree = NFABranch::new(Vec::new(), pos);
 	let mut language_scopes: Vec<LanguageTupleRef> = vec![];
 	let mut current_lang = (l, (transition, tt, td));
 	
@@ -66,16 +65,18 @@ pub fn tokenize<'a, B>(
 			println!("{}", "-".repeat(w));
 		}; }
 		match b {
-			33 => {
+			EXCLAMATION_MARK => {
 				match bytes.next() {
 					Some(t) => match t {
-						33 => {
+						EXCLAMATION_MARK => {
 							let mut lang_bytes = Vec::new();
 							while let Some(b) = bytes.next() {
-								if b == 10 || b == 59 { break }
+								if b == NEWLINE || b == SEMICOLON {
+									pos.advance(b);
+									break
+								}
 								lang_bytes.push(b)
 							}
-							pos.advance(10);
 							if let Ok(lang_string) = String::from_utf8(lang_bytes) {
 								if let Some(ltr) = crate::get(&*lang_string, buf) {
 									current_lang = ltr;
@@ -84,9 +85,10 @@ pub fn tokenize<'a, B>(
 									return Err(1)
 								}
 							}
-							tree.ps = pos.finish()
+							tree.ps = pos.finish();
+							tree.pos = pos;
 						}
-						9 | 10 | 32 => {
+						TAB | NEWLINE | SPACE => {
 							out.push(PreToken {
 								ps: pos.finish(), pe: pos.finish(),
 								tt: PreTokType::Not
@@ -94,31 +96,32 @@ pub fn tokenize<'a, B>(
 							pos.advance(t);
 						}
 						_ => {
-							propagate_check!(33);
-							pos.advance(33);
+							propagate_check!(EXCLAMATION_MARK);
+							pos.advance(EXCLAMATION_MARK);
 							propagate_check!(t);
 							pos.advance(t);
 						},
 					}
 					None => {
-						propagate_check!(33);
-						pos.advance(33);
+						propagate_check!(EXCLAMATION_MARK);
+						pos.advance(EXCLAMATION_MARK);
 						break
 					}
 				}
 			}
-			123 => {
+			OCB => {
 				// new scope
 				language_scopes.push(current_lang.clone());
-				pos.advance(123);
+				pos.advance(OCB);
 				out.push(PreToken {
 					ps: tree.ps, pe: pos.finish(),
 					tt: PreTokType::LParenCurly
 				});
 				tree.ps = pos.finish();
+				tree.pos = pos;
 				continue
 			}
-			125 => {
+			CCB => {
 				// end scope
 				if let Some(l) = language_scopes.pop() {
 					current_lang = l
@@ -126,35 +129,36 @@ pub fn tokenize<'a, B>(
 					debug_dump!();
 					return Err(2)
 				}
-				pos.advance(135);
+				pos.advance(CCB);
 				out.push(PreToken {
 					ps: tree.ps, pe: pos.finish(),
 					tt: PreTokType::RParenCurly
 				});
 				tree.ps = pos.finish();
+				tree.pos = pos;
 				continue
 			}
-			9 | 10 | 32 => {
+			TAB | NEWLINE | SPACE => {
 				pos.advance(b);
-				tree.pos.advance(b);
-				tree.ps = tree.pos.finish();
+				tree.ps = pos.finish();
+				tree.pos = pos;
 				continue
 			},
-			92 => {
-				pos.advance(92);
+			FORWARD_SLASH => {
+				pos.advance(FORWARD_SLASH);
 				match bytes.next() {
-					Some(92) => {
-						pos.advance(92);
+					Some(FORWARD_SLASH) => {
+						pos.advance(FORWARD_SLASH);
 						let mut matched = Vec::new();
 						match bytes.next() {
-							Some(92) => { /*doc comment */ }
-							Some(10) => pos.advance(10),
+							Some(FORWARD_SLASH) => { /*doc comment */ }
+							Some(NEWLINE) => pos.advance(NEWLINE),
 							Some(t) => {
 								pos.advance(t);
 								matched.push(t);
 								while let Some(n) = bytes.next() {
 									pos.advance(n);
-									if n == 10 { break }
+									if n == NEWLINE { break }
 									matched.push(n);
 								}
 							}
@@ -168,15 +172,15 @@ pub fn tokenize<'a, B>(
 						tree.reset(&pos);
 						continue
 					}
-					Some(42) => {
-						pos.advance(42);
+					Some(STAR) => {
+						pos.advance(STAR);
 						let mut matched = Vec::new();
 						while let Some(n) = bytes.next() {
 							pos.advance(n);
 							matched.push(n);
-							if n == 42 {
+							if n == STAR {
 								match bytes.next() {
-									Some(92) => { pos.advance(92); break }
+									Some(FORWARD_SLASH) => { pos.advance(FORWARD_SLASH); break }
 									Some(t) => { pos.advance(t); matched.push(t) }
 									None => { return Err(10) }
 								}
@@ -194,25 +198,25 @@ pub fn tokenize<'a, B>(
 					_ => return Err(9)
 				}
 			}
-			34 => {
-				pos.advance(34);
+			DOUBLE_QUOTE => {
+				pos.advance(DOUBLE_QUOTE);
 				let mut matched = Vec::new();
 				while let Some(t) = bytes.next() {
 					pos.advance(t);
-					if t == 34 { break }
-					if t == 92 {
+					if t == DOUBLE_QUOTE { break }
+					if t == FORWARD_SLASH {
 						let c = parse_char(&mut bytes, &mut pos)?;
 						let mut c_u8_4 = [0; 4];
 						c.encode_utf8(&mut c_u8_4);
 						match c_u8_4 {
-							[110, 0, 0, 0] => matched.push(10),
-							[116, 0, 0, 0] => matched.push(9),
-							[114, 0, 0, 0] => matched.push(13),
+							[110, 0, 0, 0] => matched.push(NEWLINE),
+							[116, 0, 0, 0] => matched.push(TAB),
+							[114, 0, 0, 0] => matched.push(CARRIAGE_RETURN),
 							_ => for i in 0..c.len_utf8() { matched.push(c_u8_4[i]) }
 						}
 					} else { matched.push(t) }
 				}
-				if pos.previous != 34 {
+				if pos.previous != DOUBLE_QUOTE {
 					debug_dump!();
 					return Err(0)
 				}
@@ -224,15 +228,15 @@ pub fn tokenize<'a, B>(
 				tree.ps = pos.finish();
 				continue
 			}
-			39 => {
-				pos.advance(39);
+			SINGLE_QUOTE => {
+				pos.advance(SINGLE_QUOTE);
 				let c = parse_char(&mut bytes, &mut pos)?;
 				
-				if bytes.next() != Some(39) {
+				if bytes.next() != Some(SINGLE_QUOTE) {
 					debug_dump!();
 					return Err(0)
 				}
-				pos.advance(39);
+				pos.advance(SINGLE_QUOTE);
 				out.push(PreToken {
 					ps: tree.ps,
 					pe: pos.finish(),
@@ -260,7 +264,8 @@ pub fn tokenize<'a, B>(
 			macro_rules! inside {
 			    ($t:ident, $($v:expr),+) => {$($t == $v)||+};
 			}
-			if inside!(t, 32, 9, 10, 123, 125, 92, 34, 39) {
+			bytes.next();
+			if inside!(t, SPACE, TAB, NEWLINE, OCB, CCB, FORWARD_SLASH, DOUBLE_QUOTE, SINGLE_QUOTE) {
 				match tree.end() {
 					Some(rem) => {
 						out.extend(rem);
@@ -274,7 +279,6 @@ pub fn tokenize<'a, B>(
 				tree.reset(&pos);
 				break
 			}
-			bytes.next();
 			match tree.propagate(t, current_lang.0, current_lang.1.0, current_lang.1.1, current_lang.1.2) {
 				NFAPropRes::Continue => {}
 				NFAPropRes::End => {

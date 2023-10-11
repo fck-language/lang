@@ -61,18 +61,18 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "cflp"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df83aea15167df1a3a7a612bf5522f90c03d6f931966f6624ed5ab4e8c2dc335"
+checksum = "83756a446d35e56b0b1c4df4b58d3de27c6117429fb0e54166e2b3543d453867"
 dependencies = [
  "cflp_macros",
 ]
 
 [[package]]
 name = "cflp_macros"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d041c96f485768ff4d8830c5f4be7897f221a4eee29d2be03e9aca56baad600c"
+checksum = "9b4501c65712c8a4b71226d9ec887bed17f91d7a5c62b5a9d8dd90f0b94bbf79"
 dependencies = [
  "proc-macro2",
  "quote",

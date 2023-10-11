@@ -2,17 +2,34 @@
 //!
 //! This module contains all the token type. It also contains two position structs used in parsing
 
-use std::fmt::{Debug, Formatter};
+use std::fmt::{Debug, Error, Formatter};
 use cflp::NodeData;
 use num_bigint::BigUint;
 use lang_inner::{Digits, LanguageRaw};
 use lang_macros::doc_see;
 
+pub(crate) mod consts {
+	pub const TAB: u8 = 9;
+	pub const NEWLINE: u8 = 10;
+	pub const SEMICOLON: u8 = 59;
+	pub const SPACE: u8 = 32;
+	pub const EXCLAMATION_MARK: u8 = 33;
+	/// Open curly brace `{`
+	pub const OCB: u8 = 123;
+	/// Closed curly brace `}`
+	pub const CCB: u8 = 125;
+	pub const FORWARD_SLASH: u8 = 92;
+	pub const STAR: u8 = 42;
+	pub const DOUBLE_QUOTE: u8 = 34;
+	pub const SINGLE_QUOTE: u8 = 39;
+	pub const CARRIAGE_RETURN: u8 = 13;
+}
+
 /// # Intermediary position struct
 ///
 /// Used to hold required positional data when lexing, and can be transformed into a [`Position`]
 /// with the [`finish`](Self::finish) method
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 #[cfg_attr(any(test, debug_assertions), derive(Debug))]
 pub struct RunningPosition {
 	ln: usize,
@@ -23,7 +40,7 @@ pub struct RunningPosition {
 /// # Position data
 ///
 /// Holds positional data on tokens and AST nodes
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct Position {
 	pub ln: usize,
 	pub col: usize,
@@ -57,13 +74,13 @@ impl RunningPosition {
 	
 	/// Advance the position on a given byte
 	pub fn advance(&mut self, b: u8) {
-		if b == b'\n' {
+		if b == consts::NEWLINE {
 			self.ln += 1;
 			self.col = 0
 		} else {
 			self.col += 1
 		}
-		if b == b'\r' && self.previous == b'\n' {
+		if b == consts::CARRIAGE_RETURN && self.previous == consts::NEWLINE {
 			self.col -= 1
 		}
 		self.previous = b
@@ -81,7 +98,7 @@ impl RunningPosition {
 /// # Token
 ///
 /// Holds a starting end ending [`Position`] as well as a [token type](PreTokType)
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub struct Token {
 	/// Starting position
@@ -116,12 +133,6 @@ impl From<&PreToken<'_>> for Token {
 	}
 }
 
-impl PartialEq for Token {
-	fn eq(&self, other: &Self) -> bool {
-		self.tt == other.tt
-	}
-}
-
 impl PartialEq<TokType> for Token {
 	fn eq(&self, other: &TokType) -> bool {
 		self.tt == *other
@@ -151,7 +162,6 @@ impl NodeData<Position> for Token {
 /// This is done since `PreTokType` does not convert raw bytes into usable data for speed (e.g.
 /// numbers are left as matched bytes). This is then converted into usable data once lexing is done
 /// to improve speed.
-#[cfg_attr(debug_assertions, derive(Debug))]
 #[derive(PartialEq, Clone)]
 pub enum TokType {
 	/// Integer literal
@@ -227,7 +237,9 @@ pub enum TokType {
 	Identifier(String, Vec<u8>),
 	/// Keyword
 	/// - `td=8`
-	Keyword(u8),
+	ControlKeyword(ControlKeyword),
+	DataKeyword(DataKeyword),
+	PrimitiveKeyword(PrimitiveKeyword),
 	/// Question mark
 	/// - `tt=4`
 	/// - `td=10`
@@ -236,6 +248,7 @@ pub enum TokType {
 	/// - `tt=4`
 	/// - `td=11`
 	Dot,
+	Arrow(Arrow),
 	/// Set/modifier set operator such as `+=` or `=`
 	/// - `tt=7`
 	/// - `td=0` for `None` and `td=1..6` for `Some(Op)`
@@ -247,10 +260,60 @@ pub enum TokType {
 	Comment(String, Vec<u8>),
 }
 
-impl Default for TokType {
-	fn default() -> Self {
-		Self::LParen
+#[cfg(debug_assertions)]
+impl Debug for TokType {
+	fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+		match self {
+			Self::Int(i) => write!(f, "Int({})", i),
+			Self::Float(i) => write!(f, "Float({})", i),
+			Self::Bool(b) => write!(f, "Bool({})", b),
+			Self::String(i) => write!(f, "String({:?})", String::from_utf8(i.clone()).unwrap_or(format!("{:?}", i))),
+			Self::Char(c) => write!(f, "Char({})", c),
+			Self::Op(op) => write!(f, "Op({:?})", op),
+			Self::Cmp(cmp) => write!(f, "Cmp({:?})", cmp),
+			Self::Increment => write!(f, "Increment"),
+			Self::Decrement => write!(f, "Decrement"),
+			Self::LParen => write!(f, "LParen"),
+			Self::RParen => write!(f, "RParen"),
+			Self::LParenCurly => write!(f, "LParenCurly"),
+			Self::RParenCurly => write!(f, "RParenCurly"),
+			Self::LParenSquare => write!(f, "LParenSquare"),
+			Self::RParenSquare => write!(f, "RParenSquare"),
+			Self::Not => write!(f, "Not"),
+			Self::Colon => write!(f, "Colon"),
+			Self::Identifier(lang, i) => write!(
+				f, "Identifier({})",
+				String::from_utf8(i.clone())
+					.map(|id| format!("{}:{}", lang, id))
+					.unwrap_or(format!("{}, {:?}", lang, i))
+			),
+			Self::ControlKeyword(ck) => write!(f, "ControlKeyword({:?})", ck),
+			Self::DataKeyword(dk) => write!(f, "DataKeyword({:?})", dk),
+			Self::PrimitiveKeyword(pk) => write!(f, "PrimitiveKeyword({:?})", pk),
+			Self::QuestionMark => write!(f, "QuestionMark"),
+			Self::Dot => write!(f, "Dot"),
+			Self::Arrow(arr) => write!(f, "Arrow({:?})", arr),
+			Self::Set(op) => write!(f, "Set({:?})", op),
+			Self::Comment(lang, c) => write!(
+				f, "Identifier({})",
+				String::from_utf8(c.clone())
+					.map(|id| format!("{}:{}", lang, id))
+					.unwrap_or(format!("{}, {:?}", lang, c))
+			)
+		}
 	}
+}
+
+impl Default for TokType {
+	fn default() -> Self { Self::LParen }
+}
+
+impl Default for Op {
+	fn default() -> Self { Self::Any }
+}
+
+impl Default for Cmp {
+	fn default() -> Self { Self::Any }
 }
 
 /// # Intermediary Token types
@@ -279,11 +342,90 @@ pub(crate) enum PreTokType<'a> {
 	Not,
 	Colon,
 	Identifier(String, Vec<u8>),
-	Keyword(u8),
+	ControlKeyword(ControlKeyword),
+	DataKeyword(DataKeyword),
+	PrimitiveKeyword(PrimitiveKeyword),
 	QuestionMark,
 	Dot,
+	Arrow(Arrow),
 	Set(Option<Op>),
 	Comment(String, Vec<u8>),
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ControlKeyword {
+	KSet,
+	KAnd,
+	KOr,
+	KNot,
+	KIf,
+	KElse,
+	KMatch,
+	KRepeat,
+	KFor,
+	KIn,
+	KTo,
+	KAs,
+	KWhile,
+	KFn,
+	KReturn,
+	KContinue,
+	KBreak,
+	KWhere
+}
+
+impl From<u8> for ControlKeyword {
+	fn from(value: u8) -> Self {
+		[
+			Self::KSet, Self::KAnd, Self::KOr, Self::KNot, Self::KIf, Self::KElse,
+			Self::KMatch, Self::KRepeat, Self::KFor, Self::KIn, Self::KTo, Self::KAs,
+			Self::KWhile, Self::KFn, Self::KReturn, Self::KContinue, Self::KBreak, Self::KWhere
+		][value as usize]
+	}
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum DataKeyword {
+	KStruct,
+	KProperties,
+	KEnum,
+	KVariants,
+	KSelf,
+	KSSelf,
+	KExtension,
+	KExtend
+}
+
+impl From<u8> for DataKeyword {
+	fn from(value: u8) -> Self {
+		[
+			Self::KStruct, Self::KProperties, Self::KEnum, Self::KVariants,
+			Self::KSelf, Self::KSSelf, Self::KExtension, Self::KExtend
+		][value as usize]
+	}
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum PrimitiveKeyword {
+	KInt,
+	KUint,
+	KDint,
+	KUdint,
+	KFloat,
+	KBfloat,
+	KStr,
+	KChar,
+	KList,
+	KBool
+}
+
+impl From<u8> for PrimitiveKeyword {
+	fn from(value: u8) -> Self {
+		[
+			Self::KInt, Self::KUint, Self::KDint, Self::KUdint, Self::KFloat,
+			Self::KBfloat, Self::KStr, Self::KChar, Self::KList, Self::KBool
+		][value as usize]
+	}
 }
 
 impl<'a> From<PreTokType<'a>> for TokType {
@@ -291,9 +433,9 @@ impl<'a> From<PreTokType<'a>> for TokType {
 		match value {
 			PreTokType::Int(matched, 10, l) => TokType::Int(new_biguint(matched, 10, &l.keywords.digits)),
 			PreTokType::Int(matched, base, l) => {
-				let prefixes = match l.keywords.digits {
-					Digits::Short { u8arrays, .. } => u8arrays[..4].iter().map(|(_, t)| 4 - *t as usize).collect::<Vec<_>>(),
-					Digits::Long { u8arrays, .. } => u8arrays[..4].iter().map(|(_, t)| 4 - *t as usize).collect::<Vec<_>>(),
+				let prefixes = match &l.keywords.digits {
+					Digits::Short(t) => [t.oct_pre_u8, t.oct_pre_u8, t.oct_pre_u8, t.u8arrays[0]].map(|(_, t)| 4 - t as usize).to_vec(),
+					Digits::Long(t) => [t.oct_pre_u8, t.oct_pre_u8, t.oct_pre_u8, t.u8arrays[0]].map(|(_, t)| 4 - t as usize).to_vec(),
 				};
 				match base {
 					2 => TokType::Int(new_biguint(matched[prefixes[3] + prefixes[0]..].to_vec(), 2, &l.keywords.digits)),
@@ -319,9 +461,12 @@ impl<'a> From<PreTokType<'a>> for TokType {
 			PreTokType::Not => TokType::Not,
 			PreTokType::Colon => TokType::Colon,
 			PreTokType::Identifier(a, b) => TokType::Identifier(a, b),
-			PreTokType::Keyword(a) => TokType::Keyword(a),
+			PreTokType::ControlKeyword(a) => TokType::ControlKeyword(a),
+			PreTokType::DataKeyword(a) => TokType::DataKeyword(a),
+			PreTokType::PrimitiveKeyword(a) => TokType::PrimitiveKeyword(a),
 			PreTokType::QuestionMark => TokType::QuestionMark,
 			PreTokType::Dot => TokType::Dot,
+			PreTokType::Arrow(a) => TokType::Arrow(a),
 			PreTokType::Set(a) => TokType::Set(a),
 			PreTokType::Comment(a, b) => TokType::Comment(a, b),
 		}
@@ -348,6 +493,8 @@ pub enum Op {
 	Div,
 	/// Power operator
 	Pow,
+	/// Any operator
+	Any
 }
 
 /// # Comparison token type
@@ -372,10 +519,16 @@ pub enum Cmp {
 	Any
 }
 
-impl Default for Cmp {
-	fn default() -> Self {
-		Self::Any
-	}
+/// # Arrow types
+///
+/// Arrow tokens for (`->`)[Arrow::Single] and (`=>`)[Arrow::Double]
+#[derive(PartialEq, Clone)]
+#[cfg_attr(any(test, debug_assertions), derive(Debug))]
+pub enum Arrow {
+	/// Single stem arrow `->`
+	Single,
+	/// Double stem arrow `=>`
+	Double
 }
 
 /// Make a new [`BigUint`] from a matched digit, base, and digits
@@ -432,8 +585,10 @@ impl<'a> PreTokType<'a> {
 				255 => PreTokType::Set(None),
 				_ => PreTokType::Set(Some(Op::new_self(td))),
 			},
-			6 => PreTokType::Keyword(td),
-			7 => PreTokType::Identifier(l.name.1.to_string(), matcher),
+			6 => PreTokType::ControlKeyword(td.into()),
+			7 => PreTokType::DataKeyword(td.into()),
+			8 => PreTokType::PrimitiveKeyword(td.into()),
+			9 => PreTokType::Identifier(l.name.1.to_string(), matcher),
 			255 => PreTokType::Comment(l.name.1.to_string(), matcher),
 			t => unreachable!("TT={}", t),
 		}
@@ -451,6 +606,8 @@ impl Op {
 			9 => PreTokType::Colon,
 			10 => PreTokType::QuestionMark,
 			11 => PreTokType::Dot,
+			12 => PreTokType::Arrow(Arrow::Single),
+			13 => PreTokType::Arrow(Arrow::Double),
 			_ => unreachable!(),
 		}
 	}

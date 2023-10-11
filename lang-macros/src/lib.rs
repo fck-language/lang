@@ -66,8 +66,10 @@ pub fn languages(mods: pmTS) -> pmTS {
 			Ok(inner) => inner,
 			Err(e) => return pmTS::from(Error::new(module.span(), format!("Unable to read language file {}.fckl:\n{:?}", mod_str, e)).to_compile_error())
 		};
-        let lang =
-            LanguageRaw::from_text(&*inner).expect(&*format!("Unable to parse {}", mod_str));
+        let lang = match LanguageRaw::from_text(&*inner) {
+			Ok(lang) => lang,
+			Err(e) => return pmTS::from(Error::new(module.span(), format!("Unable to parse {}: {}", mod_str, e)).to_compile_error())
+		};
 		if lang.is_invalid() {
 			return pmTS::from(Error::new(module.span(), format!("Language {} failed verification", mod_str)).to_compile_error())
 		}
@@ -125,7 +127,7 @@ pub fn languages(mods: pmTS) -> pmTS {
             (tt, u8, ty2, map2),
             (td, u8, ty3, map3),
         }
-
+		
         let lr = lang.serialize().to_token_stream();
         modules.push(quote! {
             #[automatically_derived]
@@ -185,7 +187,7 @@ pub fn languages(mods: pmTS) -> pmTS {
 		/// [`tokenize`](crate::lexer::tokenize).
 		///
 		/// **Note that the language code is made lowercase so `EN` is equivalent to `en`.**
-        pub fn get<'a>(l: &str, buf: &'a Vec<LanguageTuple<'a>>) -> Option<LanguageTupleRef<'a>> {
+        pub fn get<'a>(l: &str, buf: &'a [LanguageTuple<'a>]) -> Option<LanguageTupleRef<'a>> {
 			let l = &*l.to_lowercase();
             match l {
                 #(#arms)*
