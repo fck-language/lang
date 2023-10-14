@@ -88,7 +88,7 @@ pub fn tokenize<'a, B: Iterator<Item = u8>>(
 							tree.ps = pos.finish();
 							tree.pos = pos;
 						}
-						TAB | NEWLINE | SPACE => {
+						TAB | SPACE => {
 							out.push(PreToken {
 								ps: pos.finish(), pe: pos.finish(),
 								tt: PreTokType::Not
@@ -138,7 +138,7 @@ pub fn tokenize<'a, B: Iterator<Item = u8>>(
 				tree.pos = pos;
 				continue
 			}
-			TAB | NEWLINE | SPACE => {
+			TAB | SPACE => {
 				pos.advance(b);
 				tree.ps = pos.finish();
 				tree.pos = pos;
@@ -246,8 +246,8 @@ pub fn tokenize<'a, B: Iterator<Item = u8>>(
 				continue
 			}
 			_ => {
-				propagate_check!(b);
 				pos.advance(b);
+				propagate_check!(b);
 			}
 		}
 		while let Some(&t) = bytes.peek() {
@@ -264,8 +264,7 @@ pub fn tokenize<'a, B: Iterator<Item = u8>>(
 			macro_rules! inside {
 			    ($t:ident, $($v:expr),+) => {$($t == $v)||+};
 			}
-			bytes.next();
-			if inside!(t, SPACE, TAB, NEWLINE, OCB, CCB, FORWARD_SLASH, DOUBLE_QUOTE, SINGLE_QUOTE) {
+			if inside!(t, SPACE, TAB, OCB, CCB, FORWARD_SLASH, DOUBLE_QUOTE, SINGLE_QUOTE) {
 				match tree.end() {
 					Some(rem) => {
 						out.extend(rem);
@@ -275,10 +274,10 @@ pub fn tokenize<'a, B: Iterator<Item = u8>>(
 						return Err(3);
 					},
 				}
-				pos.advance(t);
 				tree.reset(&pos);
 				break
 			}
+			bytes.next();
 			match tree.propagate(t, current_lang.0, current_lang.1.0, current_lang.1.1, current_lang.1.2) {
 				NFAPropRes::Continue => {}
 				NFAPropRes::End => {

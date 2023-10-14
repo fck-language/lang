@@ -121,7 +121,8 @@ pub fn tabularize(l: &LanguageRaw<'_>) -> (Vec<[u16; 256]>, Vec<[u8; 256]>, Vec<
 		}
 	}
 	
-	for i in [9, 10, 32, 123, 125] {
+	map1[0][10] = 0;
+	for i in [9, 32, 123, 125] {
 		map1[0][i] = 0;
 		map2[0][i] = 0;
 	}

@@ -168,7 +168,7 @@ pub enum TokType {
 	/// - `tt=1`
 	/// - `td=2..=5`
 	///
-	/// Also see the `digits` module of [tables](lang_inner::tables) for `td` values
+	/// See the `digits` module of [tables](lang_inner::tables) for `td` values
 	Int(BigUint),
 	/// Float literal
 	/// - `tt=1`
@@ -241,22 +241,35 @@ pub enum TokType {
 	DataKeyword(DataKeyword),
 	PrimitiveKeyword(PrimitiveKeyword),
 	/// Question mark
-	/// - `tt=4`
+	/// - `tt=2`
 	/// - `td=10`
 	QuestionMark,
 	/// Dot
-	/// - `tt=4`
+	/// - `tt=2`
 	/// - `td=11`
 	Dot,
+	/// Dot
+	/// - `tt=2`
+	/// - `td=12`
+	Comma,
+	/// Dot
+	/// - `tt=2`
+	/// - `td=13`
+	At,
+	/// Dot
+	/// - `tt=2`
+	/// - `td=14..=15`
 	Arrow(Arrow),
+	/// Newline token
+	NewLine(NewLine),
 	/// Set/modifier set operator such as `+=` or `=`
-	/// - `tt=7`
+	/// - `tt=5`
 	/// - `td=0` for `None` and `td=1..6` for `Some(Op)`
 	///   See [`Op::new_self`] for specific `td` values (note the used `td` value here is one more
 	///   than used for `Op::new_self`)
 	Set(Option<Op>),
 	/// Comment token. Used exclusively by the translator to return comments
-	/// - `tt=254`
+	/// - `tt=255`
 	Comment(String, Vec<u8>),
 }
 
@@ -292,7 +305,11 @@ impl Debug for TokType {
 			Self::PrimitiveKeyword(pk) => write!(f, "PrimitiveKeyword({:?})", pk),
 			Self::QuestionMark => write!(f, "QuestionMark"),
 			Self::Dot => write!(f, "Dot"),
+			Self::Comma => write!(f, "Comma"),
+			Self::At => write!(f, "At"),
 			Self::Arrow(arr) => write!(f, "Arrow({:?})", arr),
+			Self::NewLine(NewLine::Explicit) => write!(f, "Explicit newline"),
+			Self::NewLine(NewLine::Implicit) => write!(f, "Implicit newline"),
 			Self::Set(op) => write!(f, "Set({:?})", op),
 			Self::Comment(lang, c) => write!(
 				f, "Identifier({})",
@@ -347,12 +364,25 @@ pub(crate) enum PreTokType<'a> {
 	PrimitiveKeyword(PrimitiveKeyword),
 	QuestionMark,
 	Dot,
+	Comma,
+	At,
 	Arrow(Arrow),
+	NewLine(NewLine),
 	Set(Option<Op>),
 	Comment(String, Vec<u8>),
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
+#[cfg_attr(debug_assertions, derive(Debug))]
+pub enum NewLine {
+	/// Explicit newline from a `;`
+	Explicit,
+	/// Explicit newline from a `\n`
+	Implicit
+}
+
+#[derive(Copy, Clone, PartialEq)]
+#[cfg_attr(debug_assertions, derive(Debug))]
 pub enum ControlKeyword {
 	KSet,
 	KAnd,
@@ -466,7 +496,10 @@ impl<'a> From<PreTokType<'a>> for TokType {
 			PreTokType::PrimitiveKeyword(a) => TokType::PrimitiveKeyword(a),
 			PreTokType::QuestionMark => TokType::QuestionMark,
 			PreTokType::Dot => TokType::Dot,
+			PreTokType::Comma => TokType::Comma,
+			PreTokType::At => TokType::At,
 			PreTokType::Arrow(a) => TokType::Arrow(a),
+			PreTokType::NewLine(a) => TokType::NewLine(a),
 			PreTokType::Set(a) => TokType::Set(a),
 			PreTokType::Comment(a, b) => TokType::Comment(a, b),
 		}
@@ -589,6 +622,11 @@ impl<'a> PreTokType<'a> {
 			7 => PreTokType::DataKeyword(td.into()),
 			8 => PreTokType::PrimitiveKeyword(td.into()),
 			9 => PreTokType::Identifier(l.name.1.to_string(), matcher),
+			10 => match td {
+				0 => PreTokType::NewLine(NewLine::Implicit),
+				1 => PreTokType::NewLine(NewLine::Explicit),
+				_ => unreachable!(),
+			}
 			255 => PreTokType::Comment(l.name.1.to_string(), matcher),
 			t => unreachable!("TT={}", t),
 		}
@@ -606,8 +644,10 @@ impl Op {
 			9 => PreTokType::Colon,
 			10 => PreTokType::QuestionMark,
 			11 => PreTokType::Dot,
-			12 => PreTokType::Arrow(Arrow::Single),
-			13 => PreTokType::Arrow(Arrow::Double),
+			12 => PreTokType::Comma,
+			13 => PreTokType::At,
+			14 => PreTokType::Arrow(Arrow::Single),
+			15 => PreTokType::Arrow(Arrow::Double),
 			_ => unreachable!(),
 		}
 	}

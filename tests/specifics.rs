@@ -4,6 +4,7 @@ use std::ops::Deref;
 
 #[cfg(test)]
 mod operators {
+	use lang::tok::NewLine;
 	use super::*;
 	
 	macro_rules! operators {
@@ -30,12 +31,17 @@ mod operators {
 	fn space_newline() {
 		let buf = Vec::new();
 		let (l, m): (&LanguageRaw, (&dyn Table<u16>, &dyn Table<u8>, &dyn Table<u8>)) = lang::get("en", &buf).unwrap();
-		let s = "\n\n";
+		let s = "\n;\n";
 		
 		let buf = Vec::new();
 		match lang::tokenize(s.bytes(), l, &buf, m) {
 			Ok(mut res) => {
-				assert_eq!(res.len(), 0, "Returned wrong number of tokens");
+				assert_eq!(res.len(), 3, "Returned wrong number of tokens");
+				assert_eq!(res, vec![
+					Token { ps: Position { ln: 0, col: 0 }, pe: Position { ln: 1, col: 0 }, tt: TokType::NewLine(NewLine::Implicit) },
+					Token { ps: Position { ln: 1, col: 0 }, pe: Position { ln: 1, col: 1 }, tt: TokType::NewLine(NewLine::Explicit) },
+					Token { ps: Position { ln: 1, col: 1 }, pe: Position { ln: 2, col: 0 }, tt: TokType::NewLine(NewLine::Implicit) }
+				])
 			}
 			Err(err) => assert!(false, "Failed parsing: {}", err)
 		}
@@ -103,6 +109,7 @@ mod digits {
 
 #[cfg(test)]
 mod comments {
+	use lang::tok::NewLine;
 	use super::*;
 	
 	#[test]
@@ -137,9 +144,11 @@ mod comments {
 		let expected = vec![
 			TokType::Comment("en".to_string(), "no spaces".as_bytes().to_vec()),
 			TokType::Comment("en".to_string(), " spaces ".as_bytes().to_vec()),
+			TokType::NewLine(NewLine::Implicit),
 			TokType::Int(123u16.into()),
 			TokType::Comment("en".to_string(), " inline ".as_bytes().to_vec()),
 			TokType::Int(456u16.into()),
+			TokType::NewLine(NewLine::Implicit),
 			TokType::Comment("en".to_string(), " over several\nlines ".as_bytes().to_vec()),
 			TokType::Op(Op::Plus)
 		];
