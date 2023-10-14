@@ -1,7 +1,7 @@
 { Deutsch de
 b x o 0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F
 setz und or nicht if else match repeat for in to as while fn return continue break where
-struct properties enum variants self Self extension extend
+struct properties enum variants self Self extension extend const
 int uint dint udint float bfloat str char list bool
 true false
 package name src tests benches type lib app version authors github gitlab email license description readme homepage repo features dependencies usage git branch path dev build main

@@ -203,6 +203,7 @@ pub struct TypeKwds<'a> {
 	pub k_Self: &'a str,
 	pub k_extension: &'a str,
 	pub k_extend: &'a str,
+	pub k_const: &'a str,
 }
 
 impl<'a> Deserialize<'a> for TypeKwds<'a> {
@@ -212,7 +213,7 @@ impl<'a> Deserialize<'a> for TypeKwds<'a> {
 		macro_rules! fields {
 		    ($($name:ident),*$(,)?) => {Ok(Self { $($name: line.next().expect(concat!("Expected ", stringify!($name), ", found nothing"))),* })};
 		}
-		fields!(k_struct, k_properties, k_enum, k_variants, k_self, k_Self, k_extension, k_extend)
+		fields!(k_struct, k_properties, k_enum, k_variants, k_self, k_Self, k_extension, k_extend, k_const)
 	}
 }
 
@@ -222,7 +223,7 @@ impl<'a> IntoIterator for TypeKwds<'a> {
 	
 	fn into_iter(self) -> Self::IntoIter {
 		vec![
-			self.k_struct, self.k_properties, self.k_enum, self.k_variants, self.k_self, self.k_Self, self.k_extension, self.k_extend
+			self.k_struct, self.k_properties, self.k_enum, self.k_variants, self.k_self, self.k_Self, self.k_extension, self.k_extend, self.k_const
 		].into_iter()
 	}
 }

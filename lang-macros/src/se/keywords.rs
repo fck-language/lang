@@ -108,8 +108,9 @@ impl Serialize for TypeKwds<'_> {
 		let k_Self = self.k_Self;
 		let k_extension = self.k_extension;
 		let k_extend = self.k_extend;
+		let k_const = self.k_const;
         fields!(
-            k_struct, k_properties, k_enum, k_variants, k_self, k_Self, k_extension, k_extend
+            k_struct, k_properties, k_enum, k_variants, k_self, k_Self, k_extension, k_extend, k_const
         )
     }
 }
