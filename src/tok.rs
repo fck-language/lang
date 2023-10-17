@@ -151,7 +151,7 @@ impl Into<TokType> for &Token {
 	}
 }
 
-impl NodeData<Position> for Token {
+impl NodeData<Position> for &Token {
 	fn start(&self) -> Position { self.ps }
 	fn end(&self) -> Position { self.pe }
 }
