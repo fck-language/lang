@@ -151,7 +151,7 @@ impl Into<TokType> for &Token {
 	}
 }
 
-impl NodeData<Position> for &Token {
+impl NodeData<Position> for Token {
 	fn start(&self) -> Position { self.ps }
 	fn end(&self) -> Position { self.pe }
 }
@@ -423,14 +423,15 @@ pub enum DataKeyword {
 	KSelf,
 	KSSelf,
 	KExtension,
-	KExtend
+	KExtend,
+	KConst
 }
 
 impl From<u8> for DataKeyword {
 	fn from(value: u8) -> Self {
 		[
 			Self::KStruct, Self::KProperties, Self::KEnum, Self::KVariants,
-			Self::KSelf, Self::KSSelf, Self::KExtension, Self::KExtend
+			Self::KSelf, Self::KSSelf, Self::KExtension, Self::KExtend, Self::KConst
 		][value as usize]
 	}
 }
