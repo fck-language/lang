@@ -144,23 +144,52 @@ pub struct DigitsRaw<const N: usize> {
 /// All the control keywords
 #[derive(Copy, Clone)]
 pub struct ControlKwds<'a> {
+	/// `set` keyword\
+	/// variable definitions
 	pub k_set: &'a str,
+	/// `and` keyword\
+	/// boolean operator. equivalent to `&&`
 	pub k_and: &'a str,
+	/// `or` keyword\
+	/// boolean operator. equivalent to `|`
 	pub k_or: &'a str,
+	/// `not` keyword\
+	/// boolean operator. equivalent to `!`
 	pub k_not: &'a str,
+	/// `if` keyword
 	pub k_if: &'a str,
+	/// `else` keyword
 	pub k_else: &'a str,
+	/// `match` keyword
 	pub k_match: &'a str,
+	/// `repeat` keyword\
+	/// conditional operator. repeats a block some number of times
 	pub k_repeat: &'a str,
+	/// `for` keyword
 	pub k_for: &'a str,
+	/// `in` keyword\
+	/// used as part of `for` statement
 	pub k_in: &'a str,
+	/// `to` keyword\
+	/// range operator
 	pub k_to: &'a str,
+	/// `as` keyword\
+	/// import name modifier (`import ?? as ??`) or extension specifier (`<Ty as Ext>::fn`)
 	pub k_as: &'a str,
+	/// `while` keyword\
+	/// conditional operator
 	pub k_while: &'a str,
+	/// `fn` keyword\
+	/// function definition operator
 	pub k_fn: &'a str,
+	/// `return` keyword
 	pub k_return: &'a str,
+	/// `continue` keyword
 	pub k_continue: &'a str,
+	/// `break` keyword
 	pub k_break: &'a str,
+	/// `where` keyword\
+	/// extension constrain keyword
 	pub k_where: &'a str,
 }
 
@@ -195,14 +224,25 @@ impl<'a> IntoIterator for ControlKwds<'a> {
 #[allow(non_snake_case)]
 #[derive(Copy, Clone)]
 pub struct TypeKwds<'a> {
+	/// `struct` type keyword
 	pub k_struct: &'a str,
+	/// `properties` of a `struct`
 	pub k_properties: &'a str,
+	/// `enum` type keyword
 	pub k_enum: &'a str,
+	/// `variants` of an `enum`
 	pub k_variants: &'a str,
+	/// `self` keyword\
+	/// Specific instance being acted upon
 	pub k_self: &'a str,
+	/// `Self` keyword\
+	/// Alias for the type of `self`
 	pub k_Self: &'a str,
+	/// `extension` keyword
 	pub k_extension: &'a str,
+	/// `extend` keywors
 	pub k_extend: &'a str,
+	/// `const` type keyword
 	pub k_const: &'a str,
 }
 
@@ -231,15 +271,25 @@ impl<'a> IntoIterator for TypeKwds<'a> {
 /// All the primitive names
 #[derive(Copy, Clone)]
 pub struct PrimitiveKwds<'a> {
+	/// integer type (`isize` in Rust)
 	pub k_int: &'a str,
+	/// unsigned integer type (`usize` in Rust)
 	pub k_uint: &'a str,
+	/// dynamic integer type
 	pub k_dint: &'a str,
+	/// unsigned dynamic integer type
 	pub k_udint: &'a str,
+	/// float type (`f32` or `f64` depending on platform)
 	pub k_float: &'a str,
+	/// float stored in base 10 (two `int` types for mantissa and exponent)
 	pub k_bfloat: &'a str,
+	/// string type
 	pub k_str: &'a str,
+	/// character type (Unicode Scalar Value)
 	pub k_char: &'a str,
+	/// List type
 	pub k_list: &'a str,
+	/// Boolean type
 	pub k_bool: &'a str,
 }
 
@@ -269,7 +319,9 @@ impl<'a> IntoIterator for PrimitiveKwds<'a> {
 /// Boolean true and false values
 #[derive(Copy, Clone)]
 pub struct BoolKwds<'a> {
+	/// `true` keyword
 	pub k_true: &'a str,
+	/// `false` keyword
 	pub k_false: &'a str,
 }
 
@@ -298,37 +350,88 @@ impl<'a> IntoIterator for BoolKwds<'a> {
 /// Manifest file keys
 #[derive(Copy, Clone)]
 pub struct ManifestKwds<'a> {
+	/// `package` keyword
 	pub k_package: &'a str,
+	/// `name` keyword\
+	/// name of the package
 	pub k_name: &'a str,
+	/// `src` keyword\
+	/// path to folder with source code in
 	pub k_src: &'a str,
+	/// `tests` keyword\
+	/// path to folder with tests in
 	pub k_tests: &'a str,
+	/// `benches` keyword\
+	/// path to folder with benchmarks in
 	pub k_benches: &'a str,
+	/// `type` keyword\
+	/// parent node of specifying package type(s)
 	pub k_type: &'a str,
+	/// `lib` keyword\
+	/// specified path (relative to `src`) of library file
 	pub k_lib: &'a str,
+	/// `lib` keyword\
+	/// specified path (relative to `src`) of application file
 	pub k_app: &'a str,
+	/// `version` keyword\
+	/// sem-ver package version
 	pub k_version: &'a str,
+	/// `authors` keyword\
+	/// parent node for authors of package
 	pub k_authors: &'a str,
+	/// `github` keyword\
+	/// github account for author
 	pub k_github: &'a str,
+	/// `gitlab` keyword\
+	/// gitlab account for author
 	pub k_gitlab: &'a str,
+	/// `email` keyword\
+	/// github address for author
 	pub k_email: &'a str,
+	/// `license` keyword\
+	/// license for package
 	pub k_license: &'a str,
+	/// `description` keyword\
+	/// description of the package
 	pub k_description: &'a str,
+	/// `readme` keyword\
+	/// path to README file
 	pub k_readme: &'a str,
+	/// `homepage` keyword\
+	/// package homepage
 	pub k_homepage: &'a str,
+	/// `repo` keyword\
+	/// package repo
 	pub k_repo: &'a str,
+	/// `features` keyword\
+	/// parent node for features for package
 	pub k_features: &'a str,
+	/// `dependencies` keyword\
+	///	dependencies node for, dependencies
 	pub k_dependencies: &'a str,
+	/// `usage` keyword\
+	/// usage section for usage of dependency
 	pub k_usage: &'a str,
+	/// `git` keyword\
+	///	link to git repo for dependency
 	pub k_git: &'a str,
+	/// `branch` keyword\
+	///	branch for a git dependency
 	pub k_branch: &'a str,
+	/// `path` keyword\
+	///	path for dependency
 	pub k_path: &'a str,
+	/// `dev` keyword\
+	///	dev dependencies node
 	pub k_dev: &'a str,
+	/// `build` keyword\
+	/// build dependencies node
 	pub k_build: &'a str,
-	pub k_main: &'a str,
 }
 
 impl ManifestKwds<'_> {
-	pub fn len(&self) -> usize { 27 }
+	/// Number of manifest keywords
+	pub fn len(&self) -> usize { 26 }
 }
 
 impl<'a> Deserialize<'a> for ManifestKwds<'a> {
@@ -342,7 +445,7 @@ impl<'a> Deserialize<'a> for ManifestKwds<'a> {
 			k_package, k_name, k_src, k_tests, k_benches, k_type, k_lib, k_app, k_version,
 			k_authors, k_github, k_gitlab, k_email, k_license, k_description, k_readme,
 			k_homepage,k_repo, k_features, k_dependencies, k_usage, k_git, k_branch, k_path,
-			k_dev, k_build, k_main
+			k_dev, k_build
 		)
 	}
 }
@@ -357,7 +460,7 @@ impl<'a> IntoIterator for ManifestKwds<'a> {
 			self.k_lib, self.k_app, self.k_version, self.k_authors, self.k_github, self.k_gitlab,
 			self.k_email, self.k_license, self.k_description, self.k_readme, self.k_homepage,
 			self.k_repo, self.k_features, self.k_dependencies, self.k_usage, self.k_git,
-			self.k_branch, self.k_path, self.k_dev, self.k_build, self.k_main,
+			self.k_branch, self.k_path, self.k_dev, self.k_build,
 		].into_iter()
 	}
 }
@@ -366,15 +469,25 @@ impl<'a> IntoIterator for ManifestKwds<'a> {
 #[allow(non_snake_case)]
 #[derive(Clone)]
 pub struct CompileKwds<'a> {
+	/// 'compiling'
 	pub k_Compiling: &'a str,
+	/// 'building'
 	pub k_Building: &'a str,
+	/// 'built'
 	pub k_Built: &'a str,
+	/// 'linking'
 	pub k_Linking: &'a str,
+	/// 'emitted'\
+	/// for number of errors and warnings
 	pub k_Emitted: &'a str,
+	/// 'error'
 	pub k_Error: &'a str,
+	/// 'errors'
 	pub k_errors: &'a str,
+	/// 'warning'
 	pub k_Warning: &'a str,
-	pub k_warning: &'a str,
+	/// 'warnings'
+	pub k_warnings: &'a str,
 }
 
 impl<'a> Deserialize<'a> for CompileKwds<'a> {
@@ -384,6 +497,6 @@ impl<'a> Deserialize<'a> for CompileKwds<'a> {
 		macro_rules! fields {
 		    ($($name:ident),*$(,)?) => {Ok(Self { $($name: line.next().expect(concat!("Expected ", stringify!($name), ", found nothing"))),* })};
 		}
-		fields!(k_Compiling, k_Building, k_Built, k_Linking, k_Emitted, k_Error, k_errors, k_Warning, k_warning)
+		fields!(k_Compiling, k_Building, k_Built, k_Linking, k_Emitted, k_Error, k_errors, k_Warning, k_warnings)
 	}
 }

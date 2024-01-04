@@ -122,21 +122,33 @@ impl<'a> Deserialize<'a> for CLIKeywords<'a> {
     }
 }
 
+/// CLI commands. All are of the type (command word, help)
 #[derive(Copy, Clone)]
 pub struct CLICommands<'a> {
+	/// new project
 	pub k_new: (&'a str, &'a str),
+	/// open a shell
 	pub k_shell: (&'a str, &'a str),
+	/// build project
 	pub k_build: (&'a str, &'a str),
+	/// run project
 	pub k_run: (&'a str, &'a str),
+	/// test project
 	pub k_test: (&'a str, &'a str),
+	/// fck info
 	pub k_info: (&'a str, &'a str),
+	/// lint project
 	pub k_lint: (&'a str, &'a str),
+	/// run some code input
 	pub k_raw: (&'a str, &'a str),
+	/// build docs
 	pub k_doc: (&'a str, &'a str),
+	/// translate code
 	pub k_translate: (&'a str, &'a str),
 }
 
 impl CLICommands<'_> {
+	/// number of CLI commands
 	pub fn len(&self) -> usize { 10 }
 }
 
@@ -186,21 +198,33 @@ impl<'a> IntoIterator for CLICommands<'a> {
 	}
 }
 
+/// CLI arguments. All values are of the form (long flag, short flag, help)
 #[derive(Copy, Clone)]
 pub struct CLIArgs<'a> {
+	/// help (--help, -h)
 	pub k_help: (&'a str, char, &'a str),
+	/// path (--path, -p)
 	pub k_path: (&'a str, char, &'a str),
+	/// git
 	pub k_git: (&'a str, char, &'a str),
+	/// dump LLVM IR
 	pub k_dump_llvm: (&'a str, char, &'a str),
+	/// don't build into an object file
 	pub k_no_build: (&'a str, char, &'a str),
+	/// todo
 	pub k_test: (&'a str, char, &'a str),
+	/// todo
 	pub k_raw: (&'a str, char, &'a str),
+	/// target triple
 	pub k_target: (&'a str, char, &'a str),
+	/// output file
 	pub k_output: (&'a str, char, &'a str),
+	/// todo
 	pub k_comment: (&'a str, char, &'a str),
 }
 
 impl CLIArgs<'_> {
+	/// number of CLI arguments
 	pub fn len(&self) -> usize { 10 }
 }
 

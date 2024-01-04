@@ -187,12 +187,11 @@ impl Serialize for ManifestKwds<'_> {
 		let k_path = self.k_path;
 		let k_dev = self.k_dev;
 		let k_build = self.k_build;
-		let k_main = self.k_main;
         fields!(
 			k_package, k_name, k_src, k_tests, k_benches, k_type, k_lib, k_app, k_version,
 			k_authors, k_github, k_gitlab, k_email, k_license, k_description, k_readme,
 			k_homepage, k_repo, k_features, k_dependencies, k_usage, k_git, k_branch, k_path,
-			k_dev, k_build, k_main
+			k_dev, k_build
 		)
     }
 }
@@ -213,7 +212,7 @@ impl Serialize for CompileKwds<'_> {
 		let k_Error = self.k_Error;
 		let k_errors = self.k_errors;
 		let k_Warning = self.k_Warning;
-		let k_warning = self.k_warning;
-        fields!(k_Compiling, k_Building, k_Built, k_Linking, k_Emitted, k_Error, k_errors, k_Warning, k_warning)
+		let k_warnings = self.k_warnings;
+        fields!(k_Compiling, k_Building, k_Built, k_Linking, k_Emitted, k_Error, k_errors, k_Warning, k_warnings)
     }
 }

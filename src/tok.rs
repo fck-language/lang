@@ -32,8 +32,11 @@ pub(crate) mod consts {
 #[derive(Copy, Clone)]
 #[cfg_attr(any(test, debug_assertions), derive(Debug))]
 pub struct RunningPosition {
+	/// Line number. Starting from 0
 	ln: usize,
+	/// Column/byte number. Starting from 0
 	col: usize,
+	/// Previous byte. Defaults to `0x00`
 	pub previous: u8,
 }
 
@@ -42,7 +45,9 @@ pub struct RunningPosition {
 /// Holds positional data on tokens and AST nodes
 #[derive(Copy, Clone, PartialEq)]
 pub struct Position {
+	/// Line number. Starting from 0
 	pub ln: usize,
+	/// Columns/byte number. Starting from 0
 	pub col: usize,
 }
 
@@ -238,7 +243,9 @@ pub enum TokType {
 	/// Keyword
 	/// - `td=8`
 	ControlKeyword(ControlKeyword),
+	/// Data keyword. See [`DataKeyword`]
 	DataKeyword(DataKeyword),
+	/// Primitive type keyword. See [`PrimitiveKeyword`]
 	PrimitiveKeyword(PrimitiveKeyword),
 	/// Question mark
 	/// - `tt=2`
@@ -372,6 +379,8 @@ pub(crate) enum PreTokType<'a> {
 	Comment(String, Vec<u8>),
 }
 
+/// Newline token. Can either be [explicit](NewLine::Explicit) for `;` or
+/// [implicit](NewLine::Implicit) for `\n`
 #[derive(Copy, Clone, PartialEq)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub enum NewLine {
@@ -381,6 +390,9 @@ pub enum NewLine {
 	Implicit
 }
 
+/// Control keywords
+///
+/// I couldn't think of a better name
 #[derive(Copy, Clone, PartialEq)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub enum ControlKeyword {
@@ -414,6 +426,9 @@ impl From<u8> for ControlKeyword {
 	}
 }
 
+/// Data keywords
+///
+/// These are keywords for data related things, such as the `struct` or `extend` keywords
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum DataKeyword {
 	KStruct,
@@ -436,6 +451,9 @@ impl From<u8> for DataKeyword {
 	}
 }
 
+/// Primitive type names
+///
+/// Names for all the primitive types
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum PrimitiveKeyword {
 	KInt,
